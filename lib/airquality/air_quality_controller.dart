@@ -8,12 +8,11 @@ class AirQualityService {
       "Hmyyh9ZiYNt4vOZZdasLtsfACBE%2BbL%2F%2B2PevBXn00OmYRdYQUZsHzJt%2BLup4p4MK3m4HnRlV8Sy043CoDzm7Lg%3D%3D";
   final String baseUrl = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/";
 
-  Future<List<AirQualityItem>> fetchAirQuality() async {
+  Future<List<AirQualityItem>> fetchAirQualityByStation(
+      String stationName) async {
     String url =
         "${baseUrl}getMsrstnAcctoRltmMesureDnsty?serviceKey=$apiKey&"
-        "returnType=json&numOfRows=1&pageNo=1&stationName=종로구&dataTerm=DAILY&ver=1.3";
-
-    Dio dio = Dio();
+        "returnType=json&numOfRows=1&pageNo=1&stationName=$stationName&dataTerm=DAILY&ver=1.3";
 
     try {
       Response response = await dio.get(url);
@@ -46,7 +45,9 @@ class AirQualityService {
             pm10Grade: i["pm10Grade"] ?? "0",
             o3Value: i["o3Value"] ?? "0",
           );
-          print("AirQualityItem Data: ");
+
+          // print문도 유지
+          print("===== $stationName 측정소 대기질 정보 =====");
           print("PM2.5 Grade 1h: ${airQuality.pm25Grade1h}");
           print("PM10 Value 24: ${airQuality.pm10Value24}");
           print("SO2 Value: ${airQuality.so2Value}");
