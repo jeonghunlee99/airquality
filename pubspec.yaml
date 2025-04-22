@@ -37,6 +37,7 @@ dependencies:
   dio:
   riverpod: ^2.6.1
   flutter_riverpod: ^2.6.1
+  geolocator: ^14.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
