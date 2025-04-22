@@ -46,28 +46,6 @@ class AirQualityService {
             o3Value: i["o3Value"] ?? "0",
           );
 
-          // print문도 유지
-          print("===== $stationName 측정소 대기질 정보 =====");
-          print("PM2.5 Grade 1h: ${airQuality.pm25Grade1h}");
-          print("PM10 Value 24: ${airQuality.pm10Value24}");
-          print("SO2 Value: ${airQuality.so2Value}");
-          print("PM10 Grade 1h: ${airQuality.pm10Grade1h}");
-          print("O3 Grade: ${airQuality.o3Grade}");
-          print("PM10 Value: ${airQuality.pm10Value}");
-          print("KHai Grade: ${airQuality.khaiGrade}");
-          print("PM2.5 Value: ${airQuality.pm25Value}");
-          print("Mang Name: ${airQuality.mangName}");
-          print("NO2 Value: ${airQuality.no2Value}");
-          print("SO2 Grade: ${airQuality.so2Grade}");
-          print("KHai Value: ${airQuality.khaiValue}");
-          print("CO Value: ${airQuality.coValue}");
-          print("NO2 Grade: ${airQuality.no2Grade}");
-          print("PM2.5 Value 24: ${airQuality.pm25Value24}");
-          print("PM2.5 Grade: ${airQuality.pm25Grade}");
-          print("CO Grade: ${airQuality.coGrade}");
-          print("Data Time: ${airQuality.dataTime}");
-          print("PM10 Grade: ${airQuality.pm10Grade}");
-          print("O3 Value: ${airQuality.o3Value}");
 
           airQualityList.add(airQuality);
         }
@@ -82,4 +60,52 @@ class AirQualityService {
       return [];
     }
   }
+
+
+
+}
+
+class AirQualityService2 {
+  final Dio _dio = Dio();
+  final String _apiKey = 'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg=='; // 인코딩된 키 사용
+  Future<String?> getNearbyStation({
+    required double tmX,
+    required double tmY,
+  }) async {
+    final String url =
+        'http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList';
+
+    try {
+      final response = await _dio.get(
+        url,
+        queryParameters: {
+          'serviceKey': _apiKey,
+          'returnType': 'json',
+          'tmX': tmX,
+          'tmY': tmY,
+          'ver': '1.1',
+        },
+      );
+
+      final data = response.data;
+      print("전체 응답: $data");
+
+      final items = data['response']?['body']?['items'];
+
+      // 여기서 items가 List인지 확인
+      if (items is List && items.isNotEmpty) {
+        final firstStation = items.first;
+
+        // Map 형태인지 확인 후 접근
+        if (firstStation is Map && firstStation.containsKey('stationName')) {
+          return firstStation['stationName'] as String;
+        }
+      }
+    } catch (e) {
+      print('Error fetching nearby station: $e');
+    }
+
+    return null;
+  }
+
 }
