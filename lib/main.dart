@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:geolocator/geolocator.dart';
 import 'airquality/air_quality_controller.dart';
 import 'airquality/air_quality_data.dart';
 
@@ -19,8 +19,28 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AirQualityTabScreen extends StatelessWidget {
+class AirQualityTabScreen extends StatefulWidget {
+  @override
+  _AirQualityTabScreenState createState() => _AirQualityTabScreenState();
+}
+
+class _AirQualityTabScreenState extends State<AirQualityTabScreen> {
   final List<String> cities = ['서울시', '안양시' ,'부산시'];
+
+  @override
+  void initState() {
+    super.initState();
+    _printCurrentLocation();
+  }
+
+  Future<void> _printCurrentLocation() async {
+    try {
+      Position position = await getCurrentPosition();
+      print('현재 위치: 위도 ${position.latitude}, 경도 ${position.longitude}');
+    } catch (e) {
+      print('위치 가져오기 오류: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +55,6 @@ class AirQualityTabScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: cities.map((city) => AirQualityCityView(cityName: city)).toList(),
-
-
         ),
       ),
     );
@@ -104,4 +122,21 @@ class AirQualityCityView extends ConsumerWidget {
       },
     );
   }
+}
+
+Future<Position> getCurrentPosition() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    throw Exception("위치 서비스가 꺼져 있습니다.");
+  }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      throw Exception("위치 권한이 거부되었습니다.");
+    }
+  }
+
+  return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 }
