@@ -35,6 +35,8 @@ class AirQualityTabScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: cities.map((city) => AirQualityCityView(cityName: city)).toList(),
+
+
         ),
       ),
     );
@@ -46,35 +48,43 @@ class AirQualityCityView extends ConsumerWidget {
 
   AirQualityCityView({required this.cityName});
 
-  final Map<String, List<String>> cityStations = {
-    '서울시': ['종로구', '강남구', '동작구' , '강동구' ],
-    '안양시': ['동안구', '만안구'],
-    '부산시': ['광안리']
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<String> stations = cityStations[cityName] ?? [];
+    // 도시별 TM 좌표 매핑
+    final Map<String, Map<String, double>> cityCoordinates = {
+      '서울시': {'tmX': 199532.3, 'tmY': 451949.0},
+      '안양시': {'tmX': 195223.4, 'tmY': 442182.5},
+      '부산시': {'tmX': 266340.0, 'tmY': 391049.0},
+    };
 
-    return ListView.builder(
-      itemCount: stations.length,
-      itemBuilder: (context, index) {
-        final station = stations[index];
+    final tmX = cityCoordinates[cityName]?['tmX'] ?? 60.0;
+    final tmY = cityCoordinates[cityName]?['tmY'] ?? 127.0;
+
+    return FutureBuilder<String?>(
+      future: AirQualityService2().getNearbyStation(tmX: tmX, tmY: tmY),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: Text('$cityName: 측정소 정보를 불러오는 중...'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Center(child: Text('$cityName: 측정소 정보를 가져올 수 없습니다.'));
+        }
+
+        final stationName = snapshot.data!;
 
         return FutureBuilder<List<AirQualityItem>>(
-          future: AirQualityService().fetchAirQualityByStation(station),
+          future: AirQualityService().fetchAirQualityByStation(stationName),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return ListTile(title: Text('$station: 불러오는 중...'));
+              return Center(child: Text('$stationName: 공기질 데이터 불러오는 중...'));
             } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-              return ListTile(title: Text('$station: 데이터 없음 또는 오류'));
+              return Center(child: Text('$stationName: 공기질 데이터 없음 또는 오류'));
             }
 
             final item = snapshot.data!.first;
             return Card(
-              margin: EdgeInsets.all(8),
+              margin: EdgeInsets.all(16),
               child: ListTile(
-                title: Text('$station (${item.dataTime})'),
+                title: Text('$stationName (${item.dataTime})'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
