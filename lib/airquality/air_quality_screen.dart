@@ -6,22 +6,20 @@ import 'package:proj4dart/proj4dart.dart';
 import 'air_quality_controller.dart';
 import 'air_quality_data.dart';
 
-class CurrentLocationAirQualityScreen extends StatefulWidget {
+class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
   @override
-  State<CurrentLocationAirQualityScreen> createState() =>
+  ConsumerState<CurrentLocationAirQualityScreen> createState() =>
       _CurrentLocationAirQualityScreenState();
 }
 
 class _CurrentLocationAirQualityScreenState
-    extends State<CurrentLocationAirQualityScreen> {
-  double? _tmX;
-  double? _tmY;
-
+    extends ConsumerState<CurrentLocationAirQualityScreen> {
   @override
   void initState() {
     super.initState();
     _initLocation();
   }
+
 
   Future<void> _initLocation() async {
     try {
@@ -37,10 +35,8 @@ class _CurrentLocationAirQualityScreenState
       final input = Point(x: position.longitude, y: position.latitude);
       final tmPoint = wgs84.transform(tmMid, input);
 
-      setState(() {
-        _tmX = double.parse(tmPoint.x.toStringAsFixed(2));
-        _tmY = double.parse(tmPoint.y.toStringAsFixed(2));
-      });
+      ref.read(tmXProvider.notifier).state = double.parse(tmPoint.x.toStringAsFixed(2));
+      ref.read(tmYProvider.notifier).state = double.parse(tmPoint.y.toStringAsFixed(2));
     } catch (e) {
       print('위치 정보 오류: $e');
     }
@@ -48,11 +44,14 @@ class _CurrentLocationAirQualityScreenState
 
   @override
   Widget build(BuildContext context) {
-    if (_tmX == null || _tmY == null) {
+    final tmX = ref.watch(tmXProvider);
+    final tmY = ref.watch(tmYProvider);
+
+    if (tmX == null || tmY == null) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      body: AirQualityCityView(cityName: '현재위치', tmX: _tmX!, tmY: _tmY!),
+      body: AirQualityCityView(cityName: '현재위치', tmX: tmX!, tmY: tmY!),
     );
   }
 }
