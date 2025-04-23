@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final airQualityProvider = StateProvider<List<AirQualityItem>>((ref) => []);
+final tmXProvider = StateProvider<double?>((ref) => null);
+final tmYProvider = StateProvider<double?>((ref) => null);
 
 class AirQualityItem {
   final String pm25Grade1h;
