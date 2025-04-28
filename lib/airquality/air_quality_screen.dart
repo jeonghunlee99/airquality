@@ -14,12 +14,33 @@ class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
 
 class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
+  bool _isSearching = false; // 추가
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _initLocation();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+    });
+  }
 
   Future<void> _initLocation() async {
     try {
@@ -35,8 +56,12 @@ class _CurrentLocationAirQualityScreenState
       final input = Point(x: position.longitude, y: position.latitude);
       final tmPoint = wgs84.transform(tmMid, input);
 
-      ref.read(tmXProvider.notifier).state = double.parse(tmPoint.x.toStringAsFixed(2));
-      ref.read(tmYProvider.notifier).state = double.parse(tmPoint.y.toStringAsFixed(2));
+      ref.read(tmXProvider.notifier).state = double.parse(
+        tmPoint.x.toStringAsFixed(2),
+      );
+      ref.read(tmYProvider.notifier).state = double.parse(
+        tmPoint.y.toStringAsFixed(2),
+      );
     } catch (e) {
       print('위치 정보 오류: $e');
     }
@@ -47,11 +72,33 @@ class _CurrentLocationAirQualityScreenState
     final tmX = ref.watch(tmXProvider);
     final tmY = ref.watch(tmYProvider);
 
-    if (tmX == null || tmY == null) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
     return Scaffold(
-      body: AirQualityCityView(cityName: '현재위치', tmX: tmX!, tmY: tmY!),
+      appBar: AppBar(
+        title:
+            _isSearching
+                ? TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: '지역 이름 입력',
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (value) {
+                    // TODO: 여기서 검색 동작 구현
+                    print('검색: $value');
+                  },
+                )
+                : Text('현재 위치 대기질'),
+        actions: [
+          _isSearching
+              ? IconButton(icon: Icon(Icons.close), onPressed: _stopSearch)
+              : IconButton(icon: Icon(Icons.search), onPressed: _startSearch),
+        ],
+      ),
+      body:
+          tmX == null || tmY == null
+              ? Center(child: CircularProgressIndicator())
+              : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
     );
   }
 }
@@ -119,7 +166,6 @@ class AirQualityCityView extends ConsumerWidget {
                 ),
               ),
             );
-
           },
         );
       },
@@ -194,7 +240,7 @@ class AirQualityLevel {
 }
 
 AirQualityLevel getAirQualityLevel(String type, String rawValue) {
-  final grade = getAirQualityGrade(type, rawValue); // 이전에 만든 함수
+  final grade = getAirQualityGrade(type, rawValue);
   switch (grade) {
     case '좋음':
       return AirQualityLevel(
