@@ -14,7 +14,7 @@ class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
 
 class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
-  bool _isSearching = false; // 추가
+  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -146,23 +146,56 @@ class AirQualityCityView extends ConsumerWidget {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // 중앙 정렬
-                  crossAxisAlignment: CrossAxisAlignment.center, // 수평 중앙 정렬
-                  children: [
-                    Text(
-                      '$stationName (${item.dataTime})',
-                      style: Theme.of(context).textTheme.titleMedium,
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Stack(
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$stationName (${item.dataTime})',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.copyWith(
+                                fontSize: 24, // 기본보다 더 키움
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            buildAirQualityRow('PM10', item.pm10Value, 'pm10'),
+
+                            buildAirQualityRow('PM2.5', item.pm25Value, 'pm25'),
+
+                            buildAirQualityRow('O₃', item.o3Value, 'o3'),
+
+                            buildAirQualityRow('SO₂', item.so2Value, 'so2'),
+
+                            buildAirQualityRow('NO₂', item.no2Value, 'no2'),
+
+                            buildAirQualityRow('CO', item.coValue, 'co'),
+
+                            buildAirQualityRow('KHAI 지수', item.khaiGrade, 'khai'),
+                          ],
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: IconButton(
+                            icon: Icon(Icons.info_outline),
+                            onPressed: () => _showInfoDialog(context),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    buildAirQualityRow('PM10', item.pm10Value, 'pm10'),
-                    buildAirQualityRow('PM2.5', item.pm25Value, 'pm25'),
-                    buildAirQualityRow('O₃', item.o3Value, 'o3'),
-                    buildAirQualityRow('SO₂', item.so2Value, 'so2'),
-                    buildAirQualityRow('NO₂', item.no2Value, 'no2'),
-                    buildAirQualityRow('CO', item.coValue, 'co'),
-                    buildAirQualityRow('KHAI 지수', item.khaiGrade, 'khai'),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -171,6 +204,50 @@ class AirQualityCityView extends ConsumerWidget {
       },
     );
   }
+}
+
+void _showInfoDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('대기질 지수 설명'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow('PM10', '미세먼지 입자 크기 10μm 이하, 호흡기에 침투할 수 있어요.'),
+              _buildInfoRow('PM2.5', '초미세먼지, 입자 크기 2.5μm 이하. 건강에 더 치명적입니다.'),
+              _buildInfoRow('O₃ (오존)', '지상 오존은 호흡기에 해롭고 눈을 자극할 수 있습니다.'),
+              _buildInfoRow('SO₂ (아황산가스)', '화석연료 연소 등으로 발생, 호흡기 자극.'),
+              _buildInfoRow('NO₂ (이산화질소)', '자동차 배기가스 주요 성분, 호흡기 질환 유발.'),
+              _buildInfoRow('CO (일산화탄소)', '무색무취의 독성 가스, 고농도 노출 시 치명적입니다.'),
+              _buildInfoRow('KHAI 지수', '대기질 종합 지수 (여러 오염물질 수치를 종합한 지표).'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('닫기'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Widget _buildInfoRow(String title, String description) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(description),
+      ],
+    ),
+  );
 }
 
 String getAirQualityGrade(String type, String rawValue) {
@@ -279,10 +356,14 @@ Widget buildAirQualityRow(String label, String value, String type) {
   return Row(
     children: [
       Icon(level.icon, color: level.color),
-      const SizedBox(width: 8),
+      const SizedBox(width: 15),
       Text(
         '$label: $value (${level.label})',
-        style: TextStyle(color: level.color, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 25,
+          color: level.color,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     ],
   );
