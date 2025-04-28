@@ -39,6 +39,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   geolocator: ^14.0.0
   proj4dart: ^2.1.0
+  geocoding: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

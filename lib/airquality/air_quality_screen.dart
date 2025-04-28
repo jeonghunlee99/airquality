@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:proj4dart/proj4dart.dart';
 import '../widget/air_quality_city_view.dart';
 import 'air_quality_data.dart';
+import 'package:geocoding/geocoding.dart'; // 추가!
 
 class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
   @override
@@ -82,10 +83,31 @@ class _CurrentLocationAirQualityScreenState
                     hintText: '지역 이름 입력',
                     border: InputBorder.none,
                   ),
-                  onSubmitted: (value) {
-                    // TODO: 여기서 검색 동작 구현
-                    print('검색: $value');
-                  },
+              onSubmitted: (value) async {
+                if (value.isEmpty) {
+                  print('검색어가 비어있습니다.');
+                  return;
+                }
+
+                try {
+                  List<Location> locations = await locationFromAddress(value);
+
+                  if (locations.isNotEmpty) {
+                    final firstLocation = locations.first;
+                    if (firstLocation != null) {
+                      double latitude = firstLocation.latitude;
+                      double longitude = firstLocation.longitude;
+                      print('검색한 주소의 위도: $latitude, 경도: $longitude');
+                    } else {
+                      print('검색 결과는 있지만 값이 없습니다.');
+                    }
+                  } else {
+                    print('검색 결과가 없습니다.');
+                  }
+                } catch (e) {
+                  print('지오코딩 오류: $e');
+                }
+              },
                 )
                 : Text('현재 위치 대기질'),
         actions: [
