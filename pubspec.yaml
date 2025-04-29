@@ -40,6 +40,8 @@ dependencies:
   geolocator: ^14.0.0
   proj4dart: ^2.1.0
   geocoding: ^3.0.0
+  kakao_flutter_sdk_user: ^1.9.7+3
+  kakao_flutter_sdk_common: ^1.9.7+3
 dev_dependencies:
   flutter_test:
     sdk: flutter
