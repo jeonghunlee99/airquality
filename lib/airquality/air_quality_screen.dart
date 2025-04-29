@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:proj4dart/proj4dart.dart';
 import '../kakao_search_service.dart';
 import '../widget/air_quality_city_view.dart';
 import 'air_quality_data.dart';
@@ -109,14 +107,14 @@ class _CurrentLocationAirQualityScreenState
                     double lat = double.parse(place['y']);
                     double lng = double.parse(place['x']);
                     setCoordinates(ref,lng, lat);
-                    _stopSearch(); // 검색 종료
+                    _stopSearch();
                   },
                 );
               },
             ),
           Expanded(
             child: _isSearching
-                ? SizedBox.shrink() // 검색 중일 때는 아무것도 안 보여줌
+                ? SizedBox.shrink()
                 : (tmX == null || tmY == null
                 ? Center(child: CircularProgressIndicator())
                 : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY)),
