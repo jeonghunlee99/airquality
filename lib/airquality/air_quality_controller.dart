@@ -52,11 +52,11 @@ class AirQualityService {
 
         return airQualityList;
       } else {
-        print("API 호출 실패: ${response.statusCode}");
+        print("API 호출 실패1: ${response.statusCode}");
         return [];
       }
     } catch (e) {
-      print("오류 발생: $e");
+      print("오류 발생12: $e");
       return [];
     }
   }
@@ -94,15 +94,19 @@ class AirQualityService2 {
 
       // 여기서 items가 List인지 확인
       if (items is List && items.isNotEmpty) {
-        final firstStation = items.first;
+        final firstStation = items[0];
+
 
         // Map 형태인지 확인 후 접근
-        if (firstStation is Map && firstStation.containsKey('stationName')) {
+        if (firstStation is Map<String, dynamic> &&
+            firstStation.containsKey('stationName')) {
           return firstStation['stationName'] as String;
         }
+      } else {
+        print("측정소 리스트가 비어 있거나 형식이 맞지 않습니다.");
       }
     } catch (e) {
-      print('Error fetching nearby station: $e');
+      print('Error fetching nearby station12: $e');
     }
 
     return null;
