@@ -9,7 +9,8 @@ class AirQualityService {
   final String baseUrl = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/";
 
   Future<List<AirQualityItem>> fetchAirQualityByStation(
-      String stationName) async {
+    String stationName,
+  ) async {
     String url =
         "${baseUrl}getMsrstnAcctoRltmMesureDnsty?serviceKey=$apiKey&"
         "returnType=json&numOfRows=1&pageNo=1&stationName=$stationName&dataTerm=DAILY&ver=1.3";
@@ -46,7 +47,6 @@ class AirQualityService {
             o3Value: i["o3Value"] ?? "0",
           );
 
-
           airQualityList.add(airQuality);
         }
 
@@ -60,14 +60,12 @@ class AirQualityService {
       return [];
     }
   }
-
-
-
 }
 
 class AirQualityService2 {
   final Dio _dio = Dio();
-  final String _apiKey = 'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg=='; // 인코딩된 키 사용
+  final String _apiKey =
+      'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg=='; // 인코딩된 키 사용
   Future<String?> getNearbyStation({
     required double tmX,
     required double tmY,
@@ -92,12 +90,9 @@ class AirQualityService2 {
 
       final items = data['response']?['body']?['items'];
 
-      // 여기서 items가 List인지 확인
       if (items is List && items.isNotEmpty) {
         final firstStation = items[0];
 
-
-        // Map 형태인지 확인 후 접근
         if (firstStation is Map<String, dynamic> &&
             firstStation.containsKey('stationName')) {
           return firstStation['stationName'] as String;
@@ -111,5 +106,4 @@ class AirQualityService2 {
 
     return null;
   }
-
 }

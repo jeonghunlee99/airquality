@@ -12,7 +12,7 @@ class KakaoSearchService {
     try {
       final response = await _dio.get(
         url,
-        options: Options(headers: {'Authorization': 'KakaoAK $_kakaoApiKey'}), // 수정된 부분
+        options: Options(headers: {'Authorization': 'KakaoAK $_kakaoApiKey'}),
       );
 
       if (response.statusCode == 200) {
