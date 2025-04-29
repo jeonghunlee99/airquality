@@ -8,6 +8,8 @@ import 'air_quality_data.dart';
 
 import 'dart:async';
 
+import 'location_helper.dart';
+
 class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<CurrentLocationAirQualityScreen> createState() =>
@@ -26,7 +28,7 @@ class _CurrentLocationAirQualityScreenState
   @override
   void initState() {
     super.initState();
-    _initLocation();
+    initLocation(ref);
   }
 
   @override
@@ -48,35 +50,6 @@ class _CurrentLocationAirQualityScreenState
       _searchController.clear();
       _searchSuggestions.clear();
     });
-  }
-
-  Future<void> _initLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      _setCoordinates(position.longitude, position.latitude);
-    } catch (e) {
-      print('위치 정보 오류: $e');
-    }
-  }
-
-  void _setCoordinates(double lng, double lat) {
-    final wgs84 = Projection.get('EPSG:4326')!;
-    final tmMid = Projection.add(
-      'EPSG:2097',
-      '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs',
-    );
-
-    final input = Point(x: lng, y: lat);
-    final tmPoint = wgs84.transform(tmMid, input);
-
-    ref.read(tmXProvider.notifier).state = double.parse(
-      tmPoint.x.toStringAsFixed(2),
-    );
-    ref.read(tmYProvider.notifier).state = double.parse(
-      tmPoint.y.toStringAsFixed(2),
-    );
   }
 
   void _onSearchChanged(String keyword) {
@@ -135,7 +108,7 @@ class _CurrentLocationAirQualityScreenState
                   onTap: () {
                     double lat = double.parse(place['y']);
                     double lng = double.parse(place['x']);
-                    _setCoordinates(lng, lat);
+                    setCoordinates(ref,lng, lat);
                     _stopSearch(); // 검색 종료
                   },
                 );
