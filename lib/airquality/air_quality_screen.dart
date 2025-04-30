@@ -75,6 +75,7 @@ class _CurrentLocationAirQualityScreenState
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: _isSearching
             ? TextField(
           controller: _searchController,
@@ -85,7 +86,7 @@ class _CurrentLocationAirQualityScreenState
           ),
           onChanged: _onSearchChanged,
         )
-            : Text('현재 위치 대기질'),
+            : Text('대기질 정보'),
         actions: [
           _isSearching
               ? IconButton(icon: Icon(Icons.close), onPressed: _stopSearch)
