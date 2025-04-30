@@ -96,30 +96,30 @@ class _CurrentLocationAirQualityScreenState
       body: Column(
         children: [
           if (_isSearching && _searchSuggestions.isNotEmpty)
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: _searchSuggestions.length > 5 ? 5 : _searchSuggestions.length,
-              itemBuilder: (context, index) {
-                final place = _searchSuggestions[index];
-                return ListTile(
-                  title: Text(place['place_name']),
-                  subtitle: Text(place['address_name']),
-                  onTap: () {
-                    double lat = double.parse(place['y']);
-                    double lng = double.parse(place['x']);
-                    setCoordinates(ref,lng, lat);
-                    _stopSearch();
-                  },
-                );
-              },
+            Expanded(
+              child: ListView.builder(
+                itemCount: _searchSuggestions.length,
+                itemBuilder: (context, index) {
+                  final place = _searchSuggestions[index];
+                  return ListTile(
+                    title: Text(place['place_name']),
+                    subtitle: Text(place['address_name']),
+                    onTap: () {
+                      double lat = double.parse(place['y']);
+                      double lng = double.parse(place['x']);
+                      setCoordinates(ref, lng, lat);
+                      _stopSearch();
+                    },
+                  );
+                },
+              ),
             ),
-          Expanded(
-            child: _isSearching
-                ? SizedBox.shrink()
-                : (tmX == null || tmY == null
-                ? Center(child: CircularProgressIndicator())
-                : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY)),
-          ),
+          if (!_isSearching)
+            Expanded(
+              child: (tmX == null || tmY == null)
+                  ? Center(child: CircularProgressIndicator())
+                  : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
+            ),
         ],
       ),
     );
