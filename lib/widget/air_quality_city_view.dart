@@ -4,7 +4,6 @@ import '../airquality/air_quality_controller.dart';
 import '../airquality/air_quality_data.dart';
 import '../airquality/location_helper.dart';
 
-
 class AirQualityCityView extends ConsumerWidget {
   final String cityName;
   final double tmX;
@@ -19,7 +18,6 @@ class AirQualityCityView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return FutureBuilder<String?>(
       future: AirQualityService2().getNearbyStation(tmX: tmX, tmY: tmY),
       builder: (context, stationSnapshot) {
@@ -74,36 +72,46 @@ class AirQualityCityView extends ConsumerWidget {
                             ),
                             const SizedBox(height: 20),
                             buildAirQualityRow('PM10', item.pm10Value, 'pm10'),
-
                             buildAirQualityRow('PM2.5', item.pm25Value, 'pm25'),
-
                             buildAirQualityRow('O₃', item.o3Value, 'o3'),
-
                             buildAirQualityRow('SO₂', item.so2Value, 'so2'),
-
                             buildAirQualityRow('NO₂', item.no2Value, 'no2'),
-
                             buildAirQualityRow('CO', item.coValue, 'co'),
-
-                            buildAirQualityRow('KHAI 지수', item.khaiGrade, 'khai'),
+                            buildAirQualityRow(
+                              'KHAI 지수',
+                              item.khaiGrade,
+                              'khai',
+                            ),
                           ],
                         ),
+                        // 위치 아이콘 버튼
+                        Positioned(
+                          top: 20,
+                          right: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.my_location),
+                            onPressed: () async {
+                              ref.read(isLoadingProvider.notifier).state = true;
+
+                              await initLocation(ref);
+
+                              ref.read(isLoadingProvider.notifier).state =
+                                  false;
+                            },
+                          ),
+                        ),
+
                         Positioned(
                           bottom: 0,
                           right: 0,
                           child: IconButton(
-                            icon: Icon(Icons.info_outline),
+                            icon: const Icon(Icons.info_outline),
                             onPressed: () => showInfoDialog(context),
                           ),
                         ),
-                    Positioned(
-                      top: 20,
-                      right: 0,
-                      child: IconButton(
-                        icon: Icon(Icons.my_location),
-                        onPressed: () => initLocation(ref),
-                      ),
-                    ),
+
+                        if (ref.watch(isLoadingProvider))
+                          const Center(child: CircularProgressIndicator()),
                       ],
                     ),
                   ),
@@ -140,7 +148,7 @@ void showInfoDialog(BuildContext context) {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('닫기',style: TextStyle(color: Colors.black),),
+            child: Text('닫기', style: TextStyle(color: Colors.black)),
           ),
         ],
       );
