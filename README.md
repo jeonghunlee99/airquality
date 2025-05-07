@@ -1,16 +1,19 @@
-# airquality
+# REST API 및 데이터 매핑 실습
 
-A new Flutter project.
+이 프로젝트는 **REST API**를 사용하여 데이터를 받아오고, 받은 데이터를 **클래스를 사용해 매핑**한 후, **상태 관리**를 적용하고 그 데이터를 바탕으로 대기질 정보를 받아오는 앱
+## 주요 기능
 
-## Getting Started
+- **REST API 호출**  
+  `Dio` 패키지를 이용해 API로부터 데이터를 받아옵니다.
+  
+- **데이터 매핑**  
+  받은 **JSON 데이터**를 클래스를 사용해 매핑하고, 필요한 정보를 추출하여 **리스트**에 담습니다.
+  
+- **상태 관리**  
+  `Riverpod`을 사용하여 간단한 **상태 관리**를 구현하고, 상태 변경 시 **UI**에 반영합니다.
 
-This project is a starting point for a Flutter application.
+## 사용된 패키지
 
-A few resources to get you started if this is your first Flutter project:
+- **`Dio`**: API 호출을 위한 HTTP 요청 처리
+- **`Riverpod`**: 상태 관리를 위한 상태 관리 패턴
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
