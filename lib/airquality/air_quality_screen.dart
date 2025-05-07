@@ -37,46 +37,42 @@ class _CurrentLocationAirQualityScreenState
   }
 
   void _startSearch() {
-    setState(() {
-      _isSearching = true;
-    });
+    ref.read(isSearchingProvider.notifier).state = true;
   }
 
   void _stopSearch() {
-    setState(() {
-      _isSearching = false;
-      _searchController.clear();
-      _searchSuggestions.clear();
-    });
+    ref.read(isSearchingProvider.notifier).state = false;
+    _searchController.clear();
+    ref.read(searchSuggestionsProvider.notifier).state = [];
   }
+
 
   void _onSearchChanged(String keyword) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
 
     _debounce = Timer(Duration(milliseconds: 300), () async {
       if (keyword.isEmpty) {
-        setState(() {
-          _searchSuggestions = [];
-        });
+        ref.read(searchSuggestionsProvider.notifier).state = [];
         return;
       }
 
       final results = await _kakaoService.searchKeyword(keyword);
-      setState(() {
-        _searchSuggestions = results;
-      });
+      ref.read(searchSuggestionsProvider.notifier).state = results;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
     final tmX = ref.watch(tmXProvider);
     final tmY = ref.watch(tmYProvider);
 
+    final isSearching = ref.watch(isSearchingProvider);
+    final searchSuggestions = ref.watch(searchSuggestionsProvider);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: _isSearching
+        title: isSearching
             ? TextField(
           controller: _searchController,
           autofocus: true,
@@ -88,19 +84,19 @@ class _CurrentLocationAirQualityScreenState
         )
             : Text('대기질 정보'),
         actions: [
-          _isSearching
+          isSearching
               ? IconButton(icon: Icon(Icons.close), onPressed: _stopSearch)
               : IconButton(icon: Icon(Icons.search), onPressed: _startSearch),
         ],
       ),
       body: Column(
         children: [
-          if (_isSearching && _searchSuggestions.isNotEmpty)
+          if (isSearching && searchSuggestions.isNotEmpty)
             Expanded(
               child: ListView.builder(
-                itemCount: _searchSuggestions.length,
+                itemCount: searchSuggestions.length,
                 itemBuilder: (context, index) {
-                  final place = _searchSuggestions[index];
+                  final place = searchSuggestions[index];
                   return ListTile(
                     title: Text(place['place_name']),
                     subtitle: Text(place['address_name']),
@@ -114,7 +110,7 @@ class _CurrentLocationAirQualityScreenState
                 },
               ),
             ),
-          if (!_isSearching)
+          if (!isSearching)
             Expanded(
               child: (tmX == null || tmY == null)
                   ? Center(child: CircularProgressIndicator())
