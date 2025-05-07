@@ -16,10 +16,10 @@ class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
 
 class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
-  bool _isSearching = false;
+
   final TextEditingController _searchController = TextEditingController();
   final KakaoSearchService _kakaoService = KakaoSearchService();
-  List<Map<String, dynamic>> _searchSuggestions = [];
+
 
   Timer? _debounce;
 
