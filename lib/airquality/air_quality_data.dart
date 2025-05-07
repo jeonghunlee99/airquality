@@ -5,6 +5,8 @@ final tmXProvider = StateProvider<double?>((ref) => null);
 final tmYProvider = StateProvider<double?>((ref) => null);
 final currentLocationProvider = StateProvider<({double tmX, double tmY})?>((ref) => null);
 final isLoadingProvider = StateProvider<bool>((ref) => false);
+final isSearchingProvider = StateProvider<bool>((ref) => false);
+final searchSuggestionsProvider = StateProvider<List<Map<String, dynamic>>>((ref) => []);
 
 
 class AirQualityItem {
