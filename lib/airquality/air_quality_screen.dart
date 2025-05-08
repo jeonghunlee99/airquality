@@ -19,7 +19,7 @@ class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
 
   final TextEditingController _searchController = TextEditingController();
-  final KakaoSearchService _kakaoService = KakaoSearchService();
+  
 
 
   Timer? _debounce;
@@ -51,14 +51,8 @@ class _CurrentLocationAirQualityScreenState
   void _onSearchChanged(String keyword) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
 
-    _debounce = Timer(Duration(milliseconds: 300), () async {
-      if (keyword.isEmpty) {
-        ref.read(searchSuggestionsProvider.notifier).state = [];
-        return;
-      }
-
-      final results = await _kakaoService.searchKeyword(keyword);
-      ref.read(searchSuggestionsProvider.notifier).state = results;
+    _debounce = Timer(Duration(milliseconds: 300), () {
+      handleSearch(ref, keyword);
     });
   }
 

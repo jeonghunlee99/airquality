@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:proj4dart/proj4dart.dart';
 
+import '../kakao_search_service.dart';
 import 'air_quality_data.dart';
 
 class AirQualityService {
@@ -134,4 +135,14 @@ void setCoordinates(WidgetRef ref, double lng, double lat) {
 
   ref.read(tmXProvider.notifier).state = double.parse(tmPoint.x.toStringAsFixed(2));
   ref.read(tmYProvider.notifier).state = double.parse(tmPoint.y.toStringAsFixed(2));
+}
+
+Future<void> handleSearch(WidgetRef ref, String keyword) async {
+  if (keyword.isEmpty) {
+    ref.read(searchSuggestionsProvider.notifier).state = [];
+    return;
+  }
+
+  final results = await KakaoSearchService().searchKeyword(keyword);
+  ref.read(searchSuggestionsProvider.notifier).state = results;
 }
