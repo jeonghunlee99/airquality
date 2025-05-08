@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../kakao_search_service.dart';
 import '../widget/air_quality_city_view.dart';
+import 'air_quality_controller.dart';
 import 'air_quality_data.dart';
 
 import 'dart:async';
 
-import 'location_helper.dart';
+
 
 class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
   @override

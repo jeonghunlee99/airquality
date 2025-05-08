@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../airquality/air_quality_controller.dart';
 import '../airquality/air_quality_data.dart';
-import '../airquality/location_helper.dart';
+
 
 class AirQualityCityView extends ConsumerWidget {
   final String cityName;
@@ -19,7 +19,7 @@ class AirQualityCityView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder<String?>(
-      future: AirQualityService2().getNearbyStation(tmX: tmX, tmY: tmY),
+      future: NearbyStationService().getNearbyStation(tmX: tmX, tmY: tmY),
       builder: (context, stationSnapshot) {
         if (stationSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(color: Colors.black));
