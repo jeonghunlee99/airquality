@@ -21,8 +21,7 @@ class AirQualityCityView extends ConsumerWidget {
     return FutureBuilder<String?>(
       future: NearbyStationService().getNearbyStation(tmX: tmX, tmY: tmY),
       builder: (context, stationSnapshot) {
-        if (stationSnapshot.connectionState == ConnectionState.waiting ||
-            stationSnapshot.connectionState == ConnectionState.none) {
+        if (stationSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(color: Colors.black));
         }
         if (!stationSnapshot.hasData || stationSnapshot.data == null) {
