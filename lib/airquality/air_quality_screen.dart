@@ -19,7 +19,7 @@ class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
 
   final TextEditingController _searchController = TextEditingController();
-  
+
 
 
   Timer? _debounce;

@@ -13,7 +13,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Air Quality App',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.blue,
+        progressIndicatorTheme: const ProgressIndicatorThemeData(color: Colors.black, )),
       home: CurrentLocationAirQualityScreen(),
     );
   }
