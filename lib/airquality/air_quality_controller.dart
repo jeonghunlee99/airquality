@@ -114,14 +114,33 @@ class NearbyStationService {
 
 Future<void> initLocation(WidgetRef ref) async {
   try {
+    // 🔸 위치 권한 확인 및 요청 추가
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('사용자가 위치 권한을 거부했습니다.');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('위치 권한이 영구적으로 거부되었습니다. 설정에서 수동으로 허용해야 합니다.');
+      return;
+    }
+
+    // ✅ 기존 코드 그대로 유지
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+
     setCoordinates(ref, position.longitude, position.latitude);
   } catch (e) {
     print('위치 정보 오류: $e');
   }
 }
+
 
 void setCoordinates(WidgetRef ref, double lng, double lat) {
   final wgs84 = Projection.get('EPSG:4326')!;
