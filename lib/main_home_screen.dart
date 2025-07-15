@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'Weather_info/weather_info_screen.dart';
 import 'airquality/air_quality_screen.dart';
 
 
@@ -12,7 +13,7 @@ class MainHomeScreen extends ConsumerWidget {
     final selectedIndex = ref.watch(selectedIndexProvider);
     final screens = [
       CurrentLocationAirQualityScreen(),
-      Center(child: Text('날씨 정보 탭')),
+      WeatherInfoScreen(),
       Center(child: Text('통계')),
       Center(child: Text('설정 및 로그인')),
     ];
