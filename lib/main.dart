@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'airquality/air_quality_screen.dart';
+import 'main_home_screen.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Air Quality App',
       theme: ThemeData(primarySwatch: Colors.blue,
         progressIndicatorTheme: const ProgressIndicatorThemeData(color: Colors.black, )),
-      home: CurrentLocationAirQualityScreen(),
+      home: MainHomeScreen(),
     );
   }
 }
