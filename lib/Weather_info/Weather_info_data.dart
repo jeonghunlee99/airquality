@@ -2,26 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 
-final weatherProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
-  ref,
-) async {
+final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) async {
   final DateTime now = DateTime.now();
-
   final String baseDate = _getBaseDate(now);
   final String baseTime = _getBaseTime(now);
+  final String serviceKey = 'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg==';
+  final int nx = 55, ny = 127;
 
-  final int nx = 55;
-  final int ny = 127;
-
-  final String serviceKey =
-      'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg==';
-  final Dio dio = Dio();
-
-  final url =
-      'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst';
-
+  final dio = Dio();
   final response = await dio.get(
-    url,
+    'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst',
     queryParameters: {
       'serviceKey': serviceKey,
       'pageNo': 1,
@@ -34,31 +24,33 @@ final weatherProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
     },
   );
 
-  final rawData = response.data;
-  final Map<String, dynamic> data =
-      rawData is String ? jsonDecode(rawData) : rawData;
-  final items = data['response']['body']['items']['item'] as List<dynamic>;
-  final String today = _formatDate(now);
+  final Map<String, dynamic> data = response.data is String
+      ? jsonDecode(response.data)
+      : response.data;
 
-  // 오늘 날짜의 TMP 항목만 추출
+  final items = data['response']['body']['items']['item'] as List;
+  final neededCategories = ['TMP', 'WSD', 'VEC', 'SKY', 'PTY', 'POP', 'PCP', 'REH'];
+  final today = _formatDate(now);
 
-  final tmpList =
-      items
-          .where(
-            (item) => item['category'] == 'TMP' && item['fcstDate'] == today,
-          )
-          .toList()
-        ..sort((a, b) => a['fcstTime'].compareTo(b['fcstTime']));
 
-  final resultList =
-      tmpList.map((item) {
-        final time = item['fcstTime'].toString();
-        final temp = item['fcstValue'].toString();
-        return {'time': time.substring(0, 2) + ':00', 'temp': temp};
-      }).toList();
+  Map<String, Map<String, String>> timeGrouped = {};
+  for (var item in items) {
+    if (item['fcstDate'] != today) continue;
+    if (!neededCategories.contains(item['category'])) continue;
 
-  return {'baseTime': baseTime, 'data': resultList};
+    final time = item['fcstTime'];
+    timeGrouped[time] ??= {};
+    timeGrouped[time]![item['category']] = item['fcstValue'].toString();
+  }
+
+  final weatherList = timeGrouped.entries.map((entry) {
+    return HourlyWeather.fromMap(entry.key, entry.value);
+  }).toList()
+    ..sort((a, b) => a.time.compareTo(b.time));
+
+  return weatherList;
 });
+
 
 String _getBaseDate(DateTime now) {
   if (now.hour < 2) {
@@ -79,4 +71,42 @@ String _getBaseTime(DateTime now) {
   int selectedHour = baseHours.lastWhere((h) => h <= hour, orElse: () => 23);
 
   return selectedHour.toString().padLeft(2, '0') + '00';
+}
+
+class HourlyWeather {
+  final String time;
+  final String temp; // TMP
+  final String windSpeed; // WSD
+  final String windDir; // VEC
+  final String sky; // SKY
+  final String pty; // PTY
+  final String pop; // POP
+  final String humidity; // REH
+  final String pcp; // PCP
+
+  HourlyWeather({
+    required this.time,
+    required this.temp,
+    required this.windSpeed,
+    required this.windDir,
+    required this.sky,
+    required this.pty,
+    required this.pop,
+    required this.humidity,
+    required this.pcp,
+  });
+
+  factory HourlyWeather.fromMap(String time, Map<String, String> data) {
+    return HourlyWeather(
+      time: '${time.substring(0, 2)}:00',
+      temp: data['TMP'] ?? '-',
+      windSpeed: data['WSD'] ?? '-',
+      windDir: data['VEC'] ?? '-',
+      sky: data['SKY'] ?? '-',
+      pty: data['PTY'] ?? '-',
+      pop: data['POP'] ?? '-',
+      humidity: data['REH'] ?? '-',
+      pcp: data['PCP'] ?? '-',
+    );
+  }
 }
