@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 
-final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) async {
+final weatherProvider = FutureProvider<List<HourlyWeather>>((ref) async {
+  ref.keepAlive();
+
   final DateTime now = DateTime.now();
   final String baseDate = _getBaseDate(now);
   final String baseTime = _getBaseTime(now);
@@ -31,7 +33,6 @@ final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) as
   final items = data['response']['body']['items']['item'] as List;
   final neededCategories = ['TMP', 'WSD', 'VEC', 'SKY', 'PTY', 'POP', 'PCP', 'REH'];
   final today = _formatDate(now);
-
 
   Map<String, Map<String, String>> timeGrouped = {};
   for (var item in items) {
