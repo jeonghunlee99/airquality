@@ -24,10 +24,8 @@ class WeatherInfoScreen extends ConsumerWidget {
 
             final nowHour = DateTime.now().hour;
             final closest = weatherList.reduce((a, b) {
-              final diffA =
-                  (int.tryParse(a.time.split(":")[0]) ?? 0 - nowHour).abs();
-              final diffB =
-                  (int.tryParse(b.time.split(":")[0]) ?? 0 - nowHour).abs();
+              final diffA = ((int.tryParse(a.time.split(":")[0]) ?? 0) - nowHour).abs();
+              final diffB = ((int.tryParse(b.time.split(":")[0]) ?? 0) - nowHour).abs();
               return diffA < diffB ? a : b;
             });
 
