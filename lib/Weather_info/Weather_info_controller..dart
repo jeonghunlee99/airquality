@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 
 import 'Weather_info_data.dart';
@@ -73,5 +74,30 @@ class WeatherService {
     int hour = now.hour;
     int selectedHour = baseHours.lastWhere((h) => h <= hour, orElse: () => 23);
     return selectedHour.toString().padLeft(2, '0') + '00';
+  }
+}
+
+void setWeatherGridCoordinates(WidgetRef ref, double lat, double lng) {
+  print('[DEBUG] setWeatherGridCoordinates - lat: $lat, lng: $lng');
+
+  try {
+    final grid = GridUtil.convertToGrid(lat, lng);
+    final nx = grid['nx'];
+    final ny = grid['ny'];
+
+    print('[DEBUG] 변환된 격자좌표: nx=$nx, ny=$ny');
+
+    if (nx == null || ny == null) {
+      print('[ERROR] 변환 실패: nx 또는 ny가 null입니다');
+      return;
+    }
+
+    ref.read(nxProvider.notifier).state = nx;
+    ref.read(nyProvider.notifier).state = ny;
+
+    print('[DEBUG] 상태 업데이트 완료');
+
+  } catch (e) {
+    print('[ERROR] setWeatherGridCoordinates 실패: $e');
   }
 }
