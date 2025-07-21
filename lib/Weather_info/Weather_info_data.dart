@@ -1,89 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import 'dart:convert';
+import 'Weather_info_controller..dart';
 
-final weatherProvider = FutureProvider<List<HourlyWeather>>((ref) async {
+final weatherServiceProvider = Provider((ref) => WeatherService());
+final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((
+  ref,
+) async {
   ref.keepAlive();
 
-  final DateTime now = DateTime.now();
-  final String baseDate = _getBaseDate(now);
-  final String baseTime = _getBaseTime(now);
-  final String serviceKey = 'Hmyyh9ZiYNt4vOZZdasLtsfACBE+bL/+2PevBXn00OmYRdYQUZsHzJt+Lup4p4MK3m4HnRlV8Sy043CoDzm7Lg==';
-  final int nx = 55, ny = 127;
-
-  final dio = Dio();
-  final response = await dio.get(
-    'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst',
-    queryParameters: {
-      'serviceKey': serviceKey,
-      'pageNo': 1,
-      'numOfRows': 1000,
-      'dataType': 'JSON',
-      'base_date': baseDate,
-      'base_time': baseTime,
-      'nx': nx,
-      'ny': ny,
-    },
-  );
-
-  final Map<String, dynamic> data = response.data is String
-      ? jsonDecode(response.data)
-      : response.data;
-
-  final items = data['response']['body']['items']['item'] as List;
-  final neededCategories = ['TMP', 'WSD', 'VEC', 'SKY', 'PTY', 'POP', 'PCP', 'REH'];
-  final today = _formatDate(now);
-
-  Map<String, Map<String, String>> timeGrouped = {};
-  for (var item in items) {
-    if (item['fcstDate'] != today) continue;
-    if (!neededCategories.contains(item['category'])) continue;
-
-    final time = item['fcstTime'];
-    timeGrouped[time] ??= {};
-    timeGrouped[time]![item['category']] = item['fcstValue'].toString();
-  }
-
-  final weatherList = timeGrouped.entries.map((entry) {
-    return HourlyWeather.fromMap(entry.key, entry.value);
-  }).toList()
-    ..sort((a, b) => a.time.compareTo(b.time));
-
-  return weatherList;
+  final service = ref.read(weatherServiceProvider);
+  return await service.fetchHourlyWeather(nx: 55, ny: 127);
 });
-
-
-String _getBaseDate(DateTime now) {
-  if (now.hour < 2) {
-    final yesterday = now.subtract(Duration(days: 1));
-    return _formatDate(yesterday);
-  }
-  return _formatDate(now);
-}
-
-String _formatDate(DateTime date) {
-  return '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
-}
-
-String _getBaseTime(DateTime now) {
-  List<int> baseHours = [2, 5, 8, 11, 14, 17, 20, 23];
-  int hour = now.hour;
-
-  int selectedHour = baseHours.lastWhere((h) => h <= hour, orElse: () => 23);
-
-  return selectedHour.toString().padLeft(2, '0') + '00';
-}
 
 class HourlyWeather {
   final String time;
-  final String temp; // TMP
-  final String windSpeed; // WSD
-  final String windDir; // VEC
-  final String sky; // SKY
-  final String pty; // PTY
-  final String pop; // POP
-  final String humidity; // REH
-  final String pcp; // PCP
+  final String temp;
+  final String windSpeed;
+  final String windDir;
+  final String sky;
+  final String pty;
+  final String pop;
+  final String humidity;
+  final String pcp;
 
   HourlyWeather({
     required this.time,
