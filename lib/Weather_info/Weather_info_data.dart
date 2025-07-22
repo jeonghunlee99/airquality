@@ -14,6 +14,7 @@ final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) as
   final service = ref.watch(weatherServiceProvider);
   return await service.fetchHourlyWeather(nx: nx, ny: ny);
 });
+
 final nxProvider = StateProvider<int>((ref) => 44); // 초기값
 final nyProvider = StateProvider<int>((ref) => 127);
 

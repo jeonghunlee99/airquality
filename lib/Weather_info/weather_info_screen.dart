@@ -1,15 +1,118 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../kakao_search_service.dart';
+import '../place_search_delegate.dart';
 import 'Weather_info_data.dart';
 
-class WeatherInfoScreen extends ConsumerWidget {
+class WeatherInfoScreen extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WeatherInfoScreen> createState() => _WeatherInfoScreenState();
+}
+
+class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+  bool isSearching = false;
+  List<Map<String, dynamic>> searchSuggestions = [];
+  final KakaoSearchService _kakaoSearchService = KakaoSearchService();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String keyword) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      if (keyword.isEmpty) {
+        setState(() {
+          searchSuggestions = [];
+        });
+        return;
+      }
+
+      final results = await _kakaoSearchService.searchKeyword(keyword);
+      setState(() {
+        searchSuggestions = results;
+      });
+    });
+  }
+
+  void _startSearch() {
+    setState(() {
+      isSearching = true;
+      searchSuggestions = [];
+      _searchController.clear();
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      isSearching = false;
+      searchSuggestions = [];
+      _searchController.clear();
+    });
+  }
+
+  void _onSuggestionTap(Map<String, dynamic> place) {
+    final placeName = place['place_name'] ?? '알 수 없는 장소';
+    final lat = double.tryParse(place['y'] ?? '');
+    final lon = double.tryParse(place['x'] ?? '');
+
+    print('선택한 장소: $placeName, 위도: $lat, 경도: $lon');
+
+    // TODO: lat, lon -> nx, ny 변환 및 날씨 조회 로직 추가
+
+    _stopSearch();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final weatherAsync = ref.watch(weatherProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text('시간별 예보'), centerTitle: true),
-      body: RefreshIndicator(
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('날씨 정보'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () async {
+                final selectedPlace = await showSearch(
+                  context: context,
+                  delegate: PlaceSearchDelegate(),
+                );
+
+                if (selectedPlace != null) {
+                  final lat = double.parse(selectedPlace['y']);
+                  final lon = double.parse(selectedPlace['x']);
+
+                  final grid = GridUtil.convertToGrid(lat, lon);
+
+                  ref.read(nxProvider.notifier).state = grid['nx']!;
+                  ref.read(nyProvider.notifier).state = grid['ny']!;
+                }
+              },
+            )
+          ],
+        ),
+      body: isSearching
+          ? ListView.builder(
+        itemCount: searchSuggestions.length,
+        itemBuilder: (context, index) {
+          final place = searchSuggestions[index];
+          return ListTile(
+            title: Text(place['place_name'] ?? ''),
+            subtitle: Text(place['address_name'] ?? ''),
+            onTap: () => _onSuggestionTap(place),
+          );
+        },
+      )
+          : RefreshIndicator(
         onRefresh: () async {
           await ref.refresh(weatherProvider.future);
         },
@@ -18,23 +121,29 @@ class WeatherInfoScreen extends ConsumerWidget {
             if (weatherList.isEmpty) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                children: [Center(child: Text('예보 데이터가 없습니다.'))],
+                children: const [
+                  Center(child: Text('예보 데이터가 없습니다.')),
+                ],
               );
             }
 
             final nowHour = DateTime.now().hour;
             final closest = weatherList.reduce((a, b) {
-              final diffA = ((int.tryParse(a.time.split(":")[0]) ?? 0) - nowHour).abs();
-              final diffB = ((int.tryParse(b.time.split(":")[0]) ?? 0) - nowHour).abs();
+              final diffA =
+              ((int.tryParse(a.time.split(":")[0]) ?? 0) - nowHour)
+                  .abs();
+              final diffB =
+              ((int.tryParse(b.time.split(":")[0]) ?? 0) - nowHour)
+                  .abs();
               return diffA < diffB ? a : b;
             });
 
             final remainingForecasts =
-                weatherList.where((w) => w != closest).toList();
+            weatherList.where((w) => w != closest).toList();
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -51,29 +160,33 @@ class WeatherInfoScreen extends ConsumerWidget {
                         children: [
                           Text(
                             '${closest.time} 예보',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
-                                child: Text('🌡️ 기온: ${closest.temp}°C'),
+                                child:
+                                Text('🌡️ 기온: ${closest.temp}°C'),
                               ),
                               Expanded(
-                                child: Text('💧 습도: ${closest.humidity}%'),
+                                child:
+                                Text('💧 습도: ${closest.humidity}%'),
                               ),
                             ],
                           ),
                           Row(
                             children: [
                               Expanded(
-                                child: Text('💨 풍속: ${closest.windSpeed} m/s'),
+                                child:
+                                Text('💨 풍속: ${closest.windSpeed} m/s'),
                               ),
                               Expanded(
-                                child: Text('🧭 풍향: ${closest.windDir}°'),
+                                child:
+                                Text('🧭 풍향: ${closest.windDir}°'),
                               ),
                             ],
                           ),
@@ -91,7 +204,7 @@ class WeatherInfoScreen extends ConsumerWidget {
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  child: Text(
+                  child: const Text(
                     '다른 시간 예보',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -105,7 +218,8 @@ class WeatherInfoScreen extends ConsumerWidget {
                       final item = remainingForecasts[index];
                       return Container(
                         width: 100,
-                        margin: const EdgeInsets.only(left: 8, right: 8),
+                        margin:
+                        const EdgeInsets.only(left: 8, right: 8),
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
@@ -117,9 +231,10 @@ class WeatherInfoScreen extends ConsumerWidget {
                           children: [
                             Text(
                               item.time,
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text('🌡 ${item.temp}°'),
                             Text('💧 ${item.humidity}%'),
                             Text(_getSkyEmoji(item.sky)),
@@ -132,13 +247,14 @@ class WeatherInfoScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => Center(child: CircularProgressIndicator()),
-          error: (err, stack) {
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [Center(child: Text('오류 발생: $err'))],
-            );
-          },
+          loading: () =>
+          const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              Center(child: Text('오류 발생: $err')),
+            ],
+          ),
         ),
       ),
     );
