@@ -17,6 +17,8 @@ final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) as
 
 final nxProvider = StateProvider<int>((ref) => 44); // 초기값
 final nyProvider = StateProvider<int>((ref) => 127);
+final selectedPlaceNameProvider = StateProvider<String>((ref) => '');
+
 
 class HourlyWeather {
   final String time;

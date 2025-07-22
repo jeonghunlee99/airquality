@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../kakao_search_service.dart';
 import '../place_search_delegate.dart';
 import 'Weather_info_data.dart';
 
@@ -15,39 +14,13 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   Timer? _debounce;
   bool isSearching = false;
   List<Map<String, dynamic>> searchSuggestions = [];
-  final KakaoSearchService _kakaoSearchService = KakaoSearchService();
+
 
   @override
   void dispose() {
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged(String keyword) {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-
-    _debounce = Timer(const Duration(milliseconds: 300), () async {
-      if (keyword.isEmpty) {
-        setState(() {
-          searchSuggestions = [];
-        });
-        return;
-      }
-
-      final results = await _kakaoSearchService.searchKeyword(keyword);
-      setState(() {
-        searchSuggestions = results;
-      });
-    });
-  }
-
-  void _startSearch() {
-    setState(() {
-      isSearching = true;
-      searchSuggestions = [];
-      _searchController.clear();
-    });
   }
 
   void _stopSearch() {
@@ -65,19 +38,17 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
 
     print('선택한 장소: $placeName, 위도: $lat, 경도: $lon');
 
-    // TODO: lat, lon -> nx, ny 변환 및 날씨 조회 로직 추가
-
     _stopSearch();
   }
 
   @override
   Widget build(BuildContext context) {
     final weatherAsync = ref.watch(weatherProvider);
-
+    final placeName = ref.watch(selectedPlaceNameProvider);
 
       return Scaffold(
         appBar: AppBar(
-          title: const Text('날씨 정보'),
+          title: Text('$placeName 날씨 예보',),
           actions: [
             IconButton(
               icon: const Icon(Icons.search),
@@ -90,11 +61,13 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                 if (selectedPlace != null) {
                   final lat = double.parse(selectedPlace['y']);
                   final lon = double.parse(selectedPlace['x']);
+                  final placeName = selectedPlace['place_name'];
 
                   final grid = GridUtil.convertToGrid(lat, lon);
 
                   ref.read(nxProvider.notifier).state = grid['nx']!;
                   ref.read(nyProvider.notifier).state = grid['ny']!;
+                  ref.read(selectedPlaceNameProvider.notifier).state = placeName;
                 }
               },
             )
@@ -113,8 +86,8 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
         },
       )
           : RefreshIndicator(
-        onRefresh: () async {
-          await ref.refresh(weatherProvider.future);
+        onRefresh: () {
+          return ref.refresh(weatherProvider.future);
         },
         child: weatherAsync.when(
           data: (weatherList) {
