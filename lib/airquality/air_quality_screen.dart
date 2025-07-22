@@ -21,14 +21,13 @@ class _CurrentLocationAirQualityScreenState
   final TextEditingController _searchController = TextEditingController();
 
 
-
-  Timer? _debounce;
-
   @override
   void initState() {
     super.initState();
     initLocation(ref);
   }
+
+  Timer? _debounce;
 
   @override
   void dispose() {
