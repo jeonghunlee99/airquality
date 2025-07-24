@@ -9,12 +9,13 @@ class WeatherInfoScreen extends ConsumerStatefulWidget {
   ConsumerState<WeatherInfoScreen> createState() => _WeatherInfoScreenState();
 }
 
+int? selectedForecastIndex;
+
 class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   final _searchController = TextEditingController();
   Timer? _debounce;
   bool isSearching = false;
   List<Map<String, dynamic>> searchSuggestions = [];
-
 
   @override
   void dispose() {
@@ -46,190 +47,284 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
     final weatherAsync = ref.watch(weatherProvider);
     final placeName = ref.watch(selectedPlaceNameProvider);
 
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('$placeName 날씨 예보',),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () async {
-                final selectedPlace = await showSearch(
-                  context: context,
-                  delegate: PlaceSearchDelegate(),
-                );
-
-                if (selectedPlace != null) {
-                  final lat = double.parse(selectedPlace['y']);
-                  final lon = double.parse(selectedPlace['x']);
-                  final placeName = selectedPlace['place_name'];
-
-                  final grid = GridUtil.convertToGrid(lat, lon);
-
-                  ref.read(nxProvider.notifier).state = grid['nx']!;
-                  ref.read(nyProvider.notifier).state = grid['ny']!;
-                  ref.read(selectedPlaceNameProvider.notifier).state = placeName;
-                }
-              },
-            )
-          ],
-        ),
-      body: isSearching
-          ? ListView.builder(
-        itemCount: searchSuggestions.length,
-        itemBuilder: (context, index) {
-          final place = searchSuggestions[index];
-          return ListTile(
-            title: Text(place['place_name'] ?? ''),
-            subtitle: Text(place['address_name'] ?? ''),
-            onTap: () => _onSuggestionTap(place),
-          );
-        },
-      )
-          : RefreshIndicator(
-        onRefresh: () {
-          return ref.refresh(weatherProvider.future);
-        },
-        child: weatherAsync.when(
-          data: (weatherList) {
-            if (weatherList.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  Center(child: Text('예보 데이터가 없습니다.')),
-                ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$placeName 날씨 예보'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final selectedPlace = await showSearch(
+                context: context,
+                delegate: PlaceSearchDelegate(),
               );
-            }
 
-            final nowHour = DateTime.now().hour;
-            final closest = weatherList.reduce((a, b) {
-              final diffA =
-              ((int.tryParse(a.time.split(":")[0]) ?? 0) - nowHour)
-                  .abs();
-              final diffB =
-              ((int.tryParse(b.time.split(":")[0]) ?? 0) - nowHour)
-                  .abs();
-              return diffA < diffB ? a : b;
-            });
+              if (selectedPlace != null) {
+                final lat = double.parse(selectedPlace['y']);
+                final lon = double.parse(selectedPlace['x']);
+                final placeName = selectedPlace['place_name'];
 
-            final remainingForecasts =
-            weatherList.where((w) => w != closest).toList();
+                final grid = GridUtil.convertToGrid(lat, lon);
 
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(12),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Card(
-                    color: Colors.blue.shade50,
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${closest.time} 예보',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child:
-                                Text('🌡️ 기온: ${closest.temp}°C'),
-                              ),
-                              Expanded(
-                                child:
-                                Text('💧 습도: ${closest.humidity}%'),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child:
-                                Text('💨 풍속: ${closest.windSpeed} m/s'),
-                              ),
-                              Expanded(
-                                child:
-                                Text('🧭 풍향: ${closest.windDir}°'),
-                              ),
-                            ],
-                          ),
-                          Text('☁️ 하늘상태: ${_getSky(closest.sky)}'),
-                          Text('🌧️ 강수형태: ${_getPty(closest.pty)}'),
-                          Text('🌂 강수량: ${closest.pcp}'),
-                          Text('📈 강수확률: ${closest.pop}%'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: const Text(
-                    '다른 시간 예보',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(
-                  height: 120,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: remainingForecasts.length,
-                    itemBuilder: (context, index) {
-                      final item = remainingForecasts[index];
-                      return Container(
-                        width: 100,
-                        margin:
-                        const EdgeInsets.only(left: 8, right: 8),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              item.time,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text('🌡 ${item.temp}°'),
-                            Text('💧 ${item.humidity}%'),
-                            Text(_getSkyEmoji(item.sky)),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-          loading: () =>
-          const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Center(child: Text('오류 발생: $err')),
-            ],
+                ref.read(nxProvider.notifier).state = grid['nx']!;
+                ref.read(nyProvider.notifier).state = grid['ny']!;
+                ref.read(selectedPlaceNameProvider.notifier).state = placeName;
+              }
+            },
           ),
-        ),
+        ],
       ),
+      body:
+          isSearching
+              ? ListView.builder(
+                itemCount: searchSuggestions.length,
+                itemBuilder: (context, index) {
+                  final place = searchSuggestions[index];
+                  return ListTile(
+                    title: Text(place['place_name'] ?? ''),
+                    subtitle: Text(place['address_name'] ?? ''),
+                    onTap: () => _onSuggestionTap(place),
+                  );
+                },
+              )
+              : RefreshIndicator(
+                onRefresh: () {
+                  return ref.refresh(weatherProvider.future);
+                },
+                child: weatherAsync.when(
+                  data: (weatherList) {
+                    if (weatherList.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [Center(child: Text('예보 데이터가 없습니다.'))],
+                      );
+                    }
+
+                    final nowHour = DateTime.now().hour;
+                    final closest = weatherList.reduce((a, b) {
+                      final diffA =
+                          ((int.tryParse(a.time.split(":")[0]) ?? 0) - nowHour)
+                              .abs();
+                      final diffB =
+                          ((int.tryParse(b.time.split(":")[0]) ?? 0) - nowHour)
+                              .abs();
+                      return diffA < diffB ? a : b;
+                    });
+
+                    final remainingForecasts =
+                        weatherList.where((w) => w != closest).toList();
+
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(12),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Card(
+                            color: Colors.blue.shade50,
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${closest.time} 예보',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '🌡️ 기온: ${closest.temp}°C',
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          '💧 습도: ${closest.humidity}%',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '💨 풍속: ${closest.windSpeed} m/s',
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          '🧭 풍향: ${closest.windDir}°',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text('☁️ 하늘상태: ${_getSky(closest.sky)}'),
+                                  Text('🌧️ 강수형태: ${_getPty(closest.pty)}'),
+                                  Text('🌂 강수량: ${closest.pcp}'),
+                                  Text('📈 강수확률: ${closest.pop}%'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: const Text(
+                            '다른 시간 예보',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                        SizedBox(
+                          height: 240,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: remainingForecasts.length,
+                            itemBuilder: (context, index) {
+                              final item = remainingForecasts[index];
+                              final isSelected = selectedForecastIndex == index;
+
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedForecastIndex =
+                                        isSelected ? null : index;
+                                  });
+                                },
+                                child: Container(
+                                  width:
+                                      isSelected
+                                          ? MediaQuery.of(context).size.width -
+                                              24 - 16
+                                          : 100,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 12,
+                                  ),
+                                  child:
+                                      isSelected
+                                          ? Card(
+                                            color: Colors.blue.shade50,
+                                            elevation: 3,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    '${item.time} 예보',
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          '🌡️ 기온: ${item.temp}°C',
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '💧 습도: ${item.humidity}%',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          '💨 풍속: ${item.windSpeed} m/s',
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '🧭 풍향: ${item.windDir}°',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    '☁️ 하늘상태: ${_getSky(item.sky)}',
+                                                  ),
+                                                  Text(
+                                                    '🌧️ 강수형태: ${_getPty(item.pty)}',
+                                                  ),
+                                                  Text('🌂 강수량: ${item.pcp}'),
+                                                  Text('📈 강수확률: ${item.pop}%'),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                          : Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  item.time,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text('🌡 ${item.temp}°'),
+                                                const SizedBox(height: 4),
+                                                Text('💧 ${item.humidity}%'),
+                                                const SizedBox(height: 4),
+                                                Text(_getSkyEmoji(item.sky)),
+                                              ],
+                                            ),
+                                          ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (err, stack) => ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [Center(child: Text('오류 발생: $err'))],
+                      ),
+                ),
+              ),
     );
   }
 }
