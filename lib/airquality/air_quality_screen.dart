@@ -65,6 +65,7 @@ class _CurrentLocationAirQualityScreenState
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
     return Scaffold(
       appBar: AppBar(
+        forceMaterialTransparency: true,
         centerTitle: true,
         title: isSearching
             ? TextField(
@@ -108,7 +109,9 @@ class _CurrentLocationAirQualityScreenState
             Expanded(
               child: (tmX == null || tmY == null)
                   ? Center(child: CircularProgressIndicator())
-                  : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
+                  : SingleChildScrollView(
+                child: AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
+              ),
             ),
         ],
       ),
