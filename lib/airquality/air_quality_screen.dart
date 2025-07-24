@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widget/air_quality_city_view.dart';
 import 'air_quality_controller.dart';
 import 'air_quality_data.dart';
-
-import 'dart:async';
-
-
+import '../utils/search_controller.dart';
 
 class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
   @override
@@ -16,44 +13,20 @@ class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
 
 class _CurrentLocationAirQualityScreenState
     extends ConsumerState<CurrentLocationAirQualityScreen> {
-
-  final TextEditingController _searchController = TextEditingController();
-
+  late CustomSearchController _searchController;
 
   @override
   void initState() {
     super.initState();
     initLocation(ref);
+    _searchController = CustomSearchController(ref);
   }
-
-  Timer? _debounce;
 
   @override
   void dispose() {
     _searchController.dispose();
-    _debounce?.cancel();
     super.dispose();
   }
-
-  void _startSearch() {
-    ref.read(isSearchingProvider.notifier).state = true;
-  }
-
-  void _stopSearch() {
-    ref.read(isSearchingProvider.notifier).state = false;
-    _searchController.clear();
-    ref.read(searchSuggestionsProvider.notifier).state = [];
-  }
-
-
-  void _onSearchChanged(String keyword) {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-
-    _debounce = Timer(Duration(milliseconds: 300), () {
-      handleSearch(ref, keyword);
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -66,21 +39,28 @@ class _CurrentLocationAirQualityScreenState
       appBar: AppBar(
         forceMaterialTransparency: true,
         centerTitle: true,
-        title: isSearching
-            ? TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: '주소 검색',
-            border: InputBorder.none,
-          ),
-          onChanged: _onSearchChanged,
-        )
-            : Text('대기질 정보'),
+        title:
+            isSearching
+                ? TextField(
+                  controller: _searchController.searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: '주소 검색',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: _searchController.onSearchChanged,
+                )
+                : Text('대기질 정보'),
         actions: [
           isSearching
-              ? IconButton(icon: Icon(Icons.close), onPressed: _stopSearch)
-              : IconButton(icon: Icon(Icons.search), onPressed: _startSearch),
+              ? IconButton(
+                icon: Icon(Icons.close),
+                onPressed: _searchController.stopSearch,
+              )
+              : IconButton(
+                icon: Icon(Icons.search),
+                onPressed: _searchController.startSearch,
+              ),
         ],
       ),
       body: Column(
@@ -98,7 +78,7 @@ class _CurrentLocationAirQualityScreenState
                       double lat = double.parse(place['y']);
                       double lng = double.parse(place['x']);
                       setCoordinates(ref, lng, lat);
-                      _stopSearch();
+                      _searchController.stopSearch();
                     },
                   );
                 },
@@ -106,11 +86,16 @@ class _CurrentLocationAirQualityScreenState
             ),
           if (!isSearching)
             Expanded(
-              child: (tmX == null || tmY == null)
-                  ? Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                child: AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
-              ),
+              child:
+                  (tmX == null || tmY == null)
+                      ? Center(child: CircularProgressIndicator())
+                      : SingleChildScrollView(
+                        child: AirQualityCityView(
+                          cityName: '현재위치',
+                          tmX: tmX,
+                          tmY: tmY,
+                        ),
+                      ),
             ),
         ],
       ),
