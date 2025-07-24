@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../airquality/air_quality_data.dart';
 import '../place_search_delegate.dart';
 import 'Weather_info_data.dart';
 
@@ -14,7 +15,6 @@ int? selectedForecastIndex;
 class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   final _searchController = TextEditingController();
   Timer? _debounce;
-  bool isSearching = false;
   List<Map<String, dynamic>> searchSuggestions = [];
 
   @override
@@ -25,11 +25,9 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   }
 
   void _stopSearch() {
-    setState(() {
-      isSearching = false;
-      searchSuggestions = [];
-      _searchController.clear();
-    });
+    ref.read(isSearchingProvider.notifier).state = false;
+    ref.read(searchSuggestionsProvider.notifier).state = [];
+    _searchController.clear();
   }
 
   void _onSuggestionTap(Map<String, dynamic> place) {
@@ -46,6 +44,8 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   Widget build(BuildContext context) {
     final weatherAsync = ref.watch(weatherProvider);
     final placeName = ref.watch(selectedPlaceNameProvider);
+    final isSearching = ref.watch(isSearchingProvider);
+    final searchSuggestions = ref.watch(searchSuggestionsProvider);
 
     return Scaffold(
       appBar: AppBar(
