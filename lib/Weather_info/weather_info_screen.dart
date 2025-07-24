@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../airquality/air_quality_data.dart';
-import '../place_search_delegate.dart';
+import '../utils/search_controller.dart';
 import 'Weather_info_data.dart';
 
 class WeatherInfoScreen extends ConsumerStatefulWidget {
@@ -13,31 +11,18 @@ class WeatherInfoScreen extends ConsumerStatefulWidget {
 int? selectedForecastIndex;
 
 class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
-  final _searchController = TextEditingController();
-  Timer? _debounce;
-  List<Map<String, dynamic>> searchSuggestions = [];
+  late final CustomSearchController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = CustomSearchController(ref);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _debounce?.cancel();
     super.dispose();
-  }
-
-  void _stopSearch() {
-    ref.read(isSearchingProvider.notifier).state = false;
-    ref.read(searchSuggestionsProvider.notifier).state = [];
-    _searchController.clear();
-  }
-
-  void _onSuggestionTap(Map<String, dynamic> place) {
-    final placeName = place['place_name'] ?? '알 수 없는 장소';
-    final lat = double.tryParse(place['y'] ?? '');
-    final lon = double.tryParse(place['x'] ?? '');
-
-    print('선택한 장소: $placeName, 위도: $lat, 경도: $lon');
-
-    _stopSearch();
   }
 
   @override
@@ -49,29 +34,32 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('$placeName 날씨 예보'),
+        title:
+            isSearching
+                ? TextField(
+                  controller: _searchController.searchController,
+                  decoration: InputDecoration(
+                    hintText: '주소 검색',
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.stopSearch();
+                      },
+                    ),
+                  ),
+                  autofocus: true,
+                  onChanged: _searchController.onSearchChanged,
+                )
+                : Text('$placeName 날씨 예보'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () async {
-              final selectedPlace = await showSearch(
-                context: context,
-                delegate: PlaceSearchDelegate(),
-              );
-
-              if (selectedPlace != null) {
-                final lat = double.parse(selectedPlace['y']);
-                final lon = double.parse(selectedPlace['x']);
-                final placeName = selectedPlace['place_name'];
-
-                final grid = GridUtil.convertToGrid(lat, lon);
-
-                ref.read(nxProvider.notifier).state = grid['nx']!;
-                ref.read(nyProvider.notifier).state = grid['ny']!;
-                ref.read(selectedPlaceNameProvider.notifier).state = placeName;
-              }
-            },
-          ),
+          if (!isSearching)
+            IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                _searchController.startSearch();
+              },
+            ),
         ],
       ),
       body:
@@ -83,7 +71,21 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                   return ListTile(
                     title: Text(place['place_name'] ?? ''),
                     subtitle: Text(place['address_name'] ?? ''),
-                    onTap: () => _onSuggestionTap(place),
+                    onTap: () {
+                      final lat = double.tryParse(place['y'] ?? '');
+                      final lon = double.tryParse(place['x'] ?? '');
+                      final placeName = place['place_name'] ?? '';
+
+                      if (lat != null && lon != null) {
+                        final grid = GridUtil.convertToGrid(lat, lon);
+                        ref.read(nxProvider.notifier).state = grid['nx']!;
+                        ref.read(nyProvider.notifier).state = grid['ny']!;
+                        ref.read(selectedPlaceNameProvider.notifier).state =
+                            placeName;
+
+                        _searchController.stopSearch();
+                      }
+                    },
                   );
                 },
               )
@@ -194,19 +196,24 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                             itemCount: remainingForecasts.length,
                             itemBuilder: (context, index) {
                               final item = remainingForecasts[index];
-                              final selectedIndex = ref.watch(selectedForecastIndexProvider);
+                              final selectedIndex = ref.watch(
+                                selectedForecastIndexProvider,
+                              );
                               final isSelected = selectedIndex == index;
 
                               return GestureDetector(
                                 onTap: () {
-                                  final notifier = ref.read(selectedForecastIndexProvider.notifier);
+                                  final notifier = ref.read(
+                                    selectedForecastIndexProvider.notifier,
+                                  );
                                   notifier.state = isSelected ? null : index;
                                 },
                                 child: Container(
                                   width:
                                       isSelected
                                           ? MediaQuery.of(context).size.width -
-                                              24 - 16
+                                              24 -
+                                              16
                                           : 100,
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 8,
