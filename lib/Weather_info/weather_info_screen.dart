@@ -194,14 +194,13 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                             itemCount: remainingForecasts.length,
                             itemBuilder: (context, index) {
                               final item = remainingForecasts[index];
-                              final isSelected = selectedForecastIndex == index;
+                              final selectedIndex = ref.watch(selectedForecastIndexProvider);
+                              final isSelected = selectedIndex == index;
 
                               return GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    selectedForecastIndex =
-                                        isSelected ? null : index;
-                                  });
+                                  final notifier = ref.read(selectedForecastIndexProvider.notifier);
+                                  notifier.state = isSelected ? null : index;
                                 },
                                 child: Container(
                                   width:

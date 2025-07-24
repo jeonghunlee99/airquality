@@ -19,6 +19,8 @@ final nxProvider = StateProvider<int>((ref) => 44); // 초기값
 final nyProvider = StateProvider<int>((ref) => 127);
 final selectedPlaceNameProvider = StateProvider<String>((ref) => '');
 final showAllForecastProvider = StateProvider<bool>((ref) => false);
+final selectedForecastIndexProvider = StateProvider<int?>((ref) => null);
+
 
 class HourlyWeather {
   final String time;
