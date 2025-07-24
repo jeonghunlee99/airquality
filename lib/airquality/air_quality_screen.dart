@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../kakao_search_service.dart';
 import '../widget/air_quality_city_view.dart';
 import 'air_quality_controller.dart';
 import 'air_quality_data.dart';
@@ -65,6 +64,7 @@ class _CurrentLocationAirQualityScreenState
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
     return Scaffold(
       appBar: AppBar(
+        forceMaterialTransparency: true,
         centerTitle: true,
         title: isSearching
             ? TextField(
@@ -108,7 +108,9 @@ class _CurrentLocationAirQualityScreenState
             Expanded(
               child: (tmX == null || tmY == null)
                   ? Center(child: CircularProgressIndicator())
-                  : AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
+                  : SingleChildScrollView(
+                child: AirQualityCityView(cityName: '현재위치', tmX: tmX, tmY: tmY),
+              ),
             ),
         ],
       ),
