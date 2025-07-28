@@ -4,6 +4,8 @@ import '../utils/search_controller.dart';
 import 'Weather_info_data.dart';
 
 class WeatherInfoScreen extends ConsumerStatefulWidget {
+  const WeatherInfoScreen({super.key});
+
   @override
   ConsumerState<WeatherInfoScreen> createState() => _WeatherInfoScreenState();
 }
@@ -345,18 +347,20 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                             onPressed: () async {
                               ref.read(retryLoadingProvider.notifier).state = true;
 
-                              // 데이터 다시 불러오기
-                              await ref.refresh(weatherProvider.future);
+                              // ignore: unused_result
+                              ref.refresh(weatherProvider);
 
-                              // 로딩 끝
                               ref.read(retryLoadingProvider.notifier).state = false;
                             },
-                            icon: const Icon(Icons.refresh, color: Colors.black),
-                            label: const Text(
-                              '다시 시도',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  color: Colors.black,
+                                ),
+                                label: const Text(
+                                  '다시 시도',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
                         ],
                       ),
                     );
