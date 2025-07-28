@@ -29,6 +29,8 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final nx = ref.watch(nxProvider);
+    final ny = ref.watch(nyProvider);
     final weatherAsync = ref.watch(weatherProvider);
     final placeName = ref.watch(selectedPlaceNameProvider);
     final isSearching = ref.watch(isSearchingProvider);
@@ -91,10 +93,12 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                   );
                 },
               )
+              : (nx == null || ny == null)
+              ? const Center(
+                child: CircularProgressIndicator(),
+              ) // 좌표 없으면 body만 로딩
               : RefreshIndicator(
-                onRefresh: () {
-                  return ref.refresh(weatherProvider.future);
-                },
+                onRefresh: () => ref.refresh(weatherProvider.future),
                 child: weatherAsync.when(
                   data: (weatherList) {
                     if (weatherList.isEmpty) {
@@ -344,14 +348,18 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                           isRetrying
                               ? const CircularProgressIndicator()
                               : ElevatedButton.icon(
-                            onPressed: () async {
-                              ref.read(retryLoadingProvider.notifier).state = true;
+                                onPressed: () async {
+                                  ref
+                                      .read(retryLoadingProvider.notifier)
+                                      .state = true;
 
-                              // ignore: unused_result
-                             await ref.refresh(weatherProvider.future);
+                                  // ignore: unused_result
+                                  await ref.refresh(weatherProvider.future);
 
-                              ref.read(retryLoadingProvider.notifier).state = false;
-                            },
+                                  ref
+                                      .read(retryLoadingProvider.notifier)
+                                      .state = false;
+                                },
                                 icon: const Icon(
                                   Icons.refresh,
                                   color: Colors.black,
