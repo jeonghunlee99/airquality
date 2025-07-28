@@ -4,6 +4,8 @@ import '../utils/search_controller.dart';
 import 'Weather_info_data.dart';
 
 class WeatherInfoScreen extends ConsumerStatefulWidget {
+  const WeatherInfoScreen({super.key});
+
   @override
   ConsumerState<WeatherInfoScreen> createState() => _WeatherInfoScreenState();
 }
@@ -324,11 +326,45 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                   },
                   loading:
                       () => const Center(child: CircularProgressIndicator()),
-                  error:
-                      (err, stack) => ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [Center(child: Text('오류 발생: $err'))],
+                  error: (err, stack) {
+                    final isRetrying = ref.watch(retryLoadingProvider);
+
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error, color: Colors.red, size: 48),
+                          const SizedBox(height: 16),
+                          const Text(
+                            '오류가 발생했습니다.\n다시 시도해주세요.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 20),
+                          isRetrying
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton.icon(
+                            onPressed: () async {
+                              ref.read(retryLoadingProvider.notifier).state = true;
+
+                              // ignore: unused_result
+                              ref.refresh(weatherProvider);
+
+                              ref.read(retryLoadingProvider.notifier).state = false;
+                            },
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  color: Colors.black,
+                                ),
+                                label: const Text(
+                                  '다시 시도',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                        ],
                       ),
+                    );
+                  },
                 ),
               ),
     );

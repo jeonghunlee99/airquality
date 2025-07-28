@@ -20,7 +20,7 @@ final nyProvider = StateProvider<int>((ref) => 127);
 final selectedPlaceNameProvider = StateProvider<String>((ref) => '');
 final showAllForecastProvider = StateProvider<bool>((ref) => false);
 final selectedForecastIndexProvider = StateProvider<int?>((ref) => null);
-
+final retryLoadingProvider = StateProvider<bool>((ref) => false);
 
 class HourlyWeather {
   final String time;
