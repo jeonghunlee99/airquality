@@ -348,7 +348,7 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                               ref.read(retryLoadingProvider.notifier).state = true;
 
                               // ignore: unused_result
-                              ref.refresh(weatherProvider);
+                             await ref.refresh(weatherProvider.future);
 
                               ref.read(retryLoadingProvider.notifier).state = false;
                             },
