@@ -18,7 +18,6 @@ class _CurrentLocationAirQualityScreenState
   @override
   void initState() {
     super.initState();
-    initLocation(ref);
     _searchController = CustomSearchController(ref);
   }
 
