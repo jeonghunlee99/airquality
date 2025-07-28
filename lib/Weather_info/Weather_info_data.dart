@@ -10,13 +10,16 @@ final weatherProvider = FutureProvider.autoDispose<List<HourlyWeather>>((ref) as
   final nx = ref.watch(nxProvider);
   final ny = ref.watch(nyProvider);
 
-  print('[DEBUG] weatherProvider에서 사용하는 nx: $nx, ny: $ny');
+  if (nx == null || ny == null) {
+    return [];
+  }
+
   final service = ref.watch(weatherServiceProvider);
   return await service.fetchHourlyWeather(nx: nx, ny: ny);
 });
 
-final nxProvider = StateProvider<int>((ref) => 44); // 초기값
-final nyProvider = StateProvider<int>((ref) => 127);
+final nxProvider = StateProvider<int?>((ref) => null);
+final nyProvider = StateProvider<int?>((ref) => null);
 final selectedPlaceNameProvider = StateProvider<String>((ref) => '');
 final showAllForecastProvider = StateProvider<bool>((ref) => false);
 final selectedForecastIndexProvider = StateProvider<int?>((ref) => null);
