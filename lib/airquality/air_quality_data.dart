@@ -1,6 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final airQualityProvider = StateProvider<List<AirQualityItem>>((ref) => []);
+import 'air_quality_controller.dart';
+
+final airQualityServiceProvider = Provider((ref) => AirQualityService());
+final nearbyStationServiceProvider = Provider((ref) => NearbyStationService());
+
+final airQualityProvider = FutureProvider.autoDispose<({String stationName, List<AirQualityItem> items})>((ref) async {
+  ref.keepAlive();
+
+  final tmX = ref.watch(tmXProvider);
+  final tmY = ref.watch(tmYProvider);
+
+  if (tmX == null || tmY == null) {
+    return (stationName: '', items: <AirQualityItem>[]);
+  }
+
+  final nearbyStationService = ref.watch(nearbyStationServiceProvider);
+  final airQualityService = ref.watch(airQualityServiceProvider);
+
+  final stationName = await nearbyStationService.getNearbyStation(tmX: tmX, tmY: tmY);
+  if (stationName == null || stationName.isEmpty) {
+    return (stationName: '', items: <AirQualityItem>[]);
+  }
+
+  final List<AirQualityItem> items = await airQualityService.fetchAirQualityByStation(stationName);
+
+  return (stationName: stationName, items: items);
+});
+
+
+
 final tmXProvider = StateProvider<double?>((ref) => null);
 final tmYProvider = StateProvider<double?>((ref) => null);
 final currentLocationProvider = StateProvider<({double tmX, double tmY})?>(

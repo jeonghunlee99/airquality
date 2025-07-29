@@ -17,184 +17,161 @@ class AirQualityCityView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<String?>(
-      future: NearbyStationService().getNearbyStation(tmX: tmX, tmY: tmY),
-      builder: (context, stationSnapshot) {
-        if (stationSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
+    final airQualityAsync = ref.watch(airQualityProvider);
+    final isLoading = ref.watch(isLoadingProvider);
+
+    return airQualityAsync.when(
+      loading:
+          () => const Center(
             child: CircularProgressIndicator(color: Colors.black),
-          );
+          ),
+      error: (error, _) => Center(child: Text('❌ ${error.toString()}')),
+      data: (data) {
+        final stationName = data.stationName;
+        final items = data.items;
+
+        if (items.isEmpty) {
+          return const Center(child: Text('❌ 데이터 없음'));
         }
-        if (!stationSnapshot.hasData || stationSnapshot.data == null) {
-          return const Center(child: Text('❌ 측정소 정보를 불러올 수 없습니다.'));
-        }
 
-        final stationName = stationSnapshot.data!;
-        return FutureBuilder<List<AirQualityItem>>(
-          future: AirQualityService().fetchAirQualityByStation(stationName),
-          builder: (context, dataSnapshot) {
-            if (dataSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.black),
-              );
-            }
-            if (dataSnapshot.hasError ||
-                !dataSnapshot.hasData ||
-                dataSnapshot.data!.isEmpty) {
-              return Center(
-                child: Text('$stationName: ❌ 대기질 데이터를 불러올 수 없습니다.'),
-              );
-            }
+        final item = items.first;
 
-            final item = dataSnapshot.data!.first;
-            final isLoading = ref.watch(isLoadingProvider);
-
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Stack(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.85,
-                      height: MediaQuery.of(context).size.height * 0.85,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.white, Colors.yellow[200]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha((255 * 0.1).round()),
-                            blurRadius: 10,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Stack(
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.yellow[200]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((255 * 0.1).round()),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          '$stationName\n(${item.dataTime})',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Expanded(
+                          child: GridView.count(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 1.2,
+                            physics: const NeverScrollableScrollPhysics(),
+                            children: [
+                              buildAirQualityCard(
+                                'PM10',
+                                item.pm10Value,
+                                'pm10',
+                              ),
+                              buildAirQualityCard(
+                                'PM2.5',
+                                item.pm25Value,
+                                'pm25',
+                              ),
+                              buildAirQualityCard('O₃', item.o3Value, 'o3'),
+                              buildAirQualityCard('SO₂', item.so2Value, 'so2'),
+                              buildAirQualityCard('NO₂', item.no2Value, 'no2'),
+                              buildAirQualityCard('CO', item.coValue, 'co'),
+                              buildAirQualityCard(
+                                'KHAI',
+                                item.khaiGrade,
+                                'khai',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
+                            TextButton.icon(
+                              onPressed: () async {
+                                ref.read(isLoadingProvider.notifier).state =
+                                    true;
+                                await initLocation(ref);
+                                ref.read(isLoadingProvider.notifier).state =
+                                    false;
+                              },
+                              icon: const Icon(
+                                Icons.my_location,
+                                color: Colors.black,
+                              ),
+                              label: const Text(
+                                '현재 위치 재조회',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => showInfoDialog(context),
+                              icon: const Icon(
+                                Icons.info_outline,
+                                color: Colors.black,
+                              ),
+                              label: const Text(
+                                '지수 설명',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha((255 * 0.7).round()),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(color: Colors.black),
+                            SizedBox(height: 16),
                             Text(
-                              '$stationName\n(${item.dataTime})',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                              '현재 위치를 가져오는 중이에요!',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                            const SizedBox(height: 20),
-                            Expanded(
-                              child: GridView.count(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 16,
-                                crossAxisSpacing: 16,
-                                childAspectRatio: 1.2,
-                                physics: const NeverScrollableScrollPhysics(),
-                                children: [
-                                  buildAirQualityCard(
-                                    'PM10',
-                                    item.pm10Value,
-                                    'pm10',
-                                  ),
-                                  buildAirQualityCard(
-                                    'PM2.5',
-                                    item.pm25Value,
-                                    'pm25',
-                                  ),
-                                  buildAirQualityCard('O₃', item.o3Value, 'o3'),
-                                  buildAirQualityCard(
-                                    'SO₂',
-                                    item.so2Value,
-                                    'so2',
-                                  ),
-                                  buildAirQualityCard(
-                                    'NO₂',
-                                    item.no2Value,
-                                    'no2',
-                                  ),
-                                  buildAirQualityCard('CO', item.coValue, 'co'),
-                                  buildAirQualityCard(
-                                    'KHAI',
-                                    item.khaiGrade,
-                                    'khai',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                TextButton.icon(
-                                  onPressed: () async {
-                                    ref.read(isLoadingProvider.notifier).state =
-                                        true;
-                                    await initLocation(ref);
-                                    ref.read(isLoadingProvider.notifier).state =
-                                        false;
-                                  },
-                                  icon: const Icon(
-                                    Icons.my_location,
-                                    color: Colors.black,
-                                  ),
-                                  label: const Text(
-                                    '현재 위치 재조회',
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  onPressed: () => showInfoDialog(context),
-                                  icon: const Icon(
-                                    Icons.info_outline,
-                                    color: Colors.black,
-                                  ),
-                                  label: const Text(
-                                    '지수 설명',
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                    if (isLoading)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha((255 * 0.7).round()),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircularProgressIndicator(color: Colors.black),
-                                SizedBox(height: 16),
-                                Text(
-                                  '현재 위치를 가져오는 중이에요!',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+              ],
+            ),
+          ),
         );
       },
     );
