@@ -38,6 +38,7 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title:
             isSearching
                 ? TextField(
@@ -94,10 +95,9 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                 },
               )
               : (nx == null || ny == null)
-              ? const Center(
-                child: CircularProgressIndicator(),
-              ) // 좌표 없으면 body만 로딩
+              ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
+                color: Colors.black,
                 onRefresh: () => ref.refresh(weatherProvider.future),
                 child: weatherAsync.when(
                   data: (weatherList) {
