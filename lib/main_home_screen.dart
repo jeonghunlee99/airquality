@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'Weather_info/weather_info_screen.dart';
 import 'airquality/air_quality_screen.dart';
+import 'bookmarks/book_marks_screen.dart';
 
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
@@ -12,9 +13,9 @@ class MainHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(selectedIndexProvider);
     final screens = [
-      CurrentLocationAirQualityScreen(),
+      AirQualityScreen(),
       WeatherInfoScreen(),
-      Center(child: Text('통계')),
+      BookMarksScreen(),
       Center(child: Text('설정 및 로그인')),
     ];
 
@@ -38,8 +39,8 @@ class MainHomeScreen extends ConsumerWidget {
             label: '날씨',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: '통계',
+            icon: Icon(Icons.star),
+            label: '즐겨찾기',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
