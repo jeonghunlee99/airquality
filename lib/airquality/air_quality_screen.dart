@@ -5,14 +5,14 @@ import 'air_quality_controller.dart';
 import 'air_quality_data.dart';
 import '../utils/search_controller.dart';
 
-class CurrentLocationAirQualityScreen extends ConsumerStatefulWidget {
+class AirQualityScreen extends ConsumerStatefulWidget {
   @override
-  ConsumerState<CurrentLocationAirQualityScreen> createState() =>
+  ConsumerState<AirQualityScreen> createState() =>
       _CurrentLocationAirQualityScreenState();
 }
 
 class _CurrentLocationAirQualityScreenState
-    extends ConsumerState<CurrentLocationAirQualityScreen> {
+    extends ConsumerState<AirQualityScreen> {
   late CustomSearchController _searchController;
 
   @override
