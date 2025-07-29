@@ -2,28 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/search_controller.dart';
 
-
-
-final bookmarksProvider =
-StateProvider<List<Map<String, dynamic>>>((ref) => [
-  {
-    'placeName': '서울특별시 중구 을지로 100',
-    'latitude': 37.5665,
-    'longitude': 126.9780,
-  },
-  {
-    'placeName': '부산광역시 해운대구 우동 1234',
-    'latitude': 35.1796,
-    'longitude': 129.0756,
-  },
-]);
+final bookmarksProvider = StateProvider<List<Map<String, dynamic>>>(
+  (ref) => [
+    {
+      'placeName': '서울특별시 중구 을지로 100',
+      'latitude': 37.5665,
+      'longitude': 126.9780,
+    },
+    {
+      'placeName': '부산광역시 해운대구 우동 1234',
+      'latitude': 35.1796,
+      'longitude': 129.0756,
+    },
+  ],
+);
 
 class BookMarksScreen extends ConsumerStatefulWidget {
   const BookMarksScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<BookMarksScreen> createState() =>
-      _BookMarksScreenState();
+  ConsumerState<BookMarksScreen> createState() => _BookMarksScreenState();
 }
 
 class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
@@ -49,17 +47,18 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: isSearching
-            ? TextField(
-          controller: _searchController.searchController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '장소 검색',
-            border: InputBorder.none,
-          ),
-          onChanged: _searchController.onSearchChanged,
-        )
-            : const Text('즐겨찾기'),
+        title:
+            isSearching
+                ? TextField(
+                  controller: _searchController.searchController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: '장소 검색',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: _searchController.onSearchChanged,
+                )
+                : const Text('즐겨찾기'),
         actions: [
           IconButton(
             icon: Icon(isSearching ? Icons.close : Icons.search),
@@ -73,74 +72,96 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
           ),
         ],
       ),
-      body: isSearching
-          ? ListView.builder(
-        itemCount: searchSuggestions.length,
-        itemBuilder: (context, index) {
-          final suggestion = searchSuggestions[index];
-          return ListTile(
-            title: Text(suggestion['place_name'] ?? ''),
-            subtitle: Text(suggestion['address_name'] ?? ''),
-            onTap: () {
-              final place = {
-                'placeName': suggestion['address_name'] ?? '',
-                'latitude': double.parse(suggestion['y']),
-                'longitude': double.parse(suggestion['x']),
-              };
-              final updatedBookmarks = [...bookmarks, place];
-              ref.read(bookmarksProvider.notifier).state =
-                  updatedBookmarks;
-              _searchController.stopSearch();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-              );
-            },
-          );
-        },
-      )
-          : bookmarks.isEmpty
-          ? const Center(child: Text('즐겨찾는 장소가 없습니다.'))
-          : ListView.builder(
-        itemCount: bookmarks.length,
-        itemBuilder: (context, index) {
-          final bookmark = bookmarks[index];
-          return ListTile(
-            title: Text(bookmark['placeName']),
-            trailing: IconButton(
-              icon:
-              const Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                final updatedBookmarks = [...bookmarks]
-                  ..removeAt(index);
-                ref.read(bookmarksProvider.notifier).state =
-                    updatedBookmarks;
-              },
-            ),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: Text(bookmark['placeName']),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: _AirQualityAndWeatherDetails(
-                      latitude: bookmark['latitude'],
-                      longitude: bookmark['longitude'],
-                    ),
+      body:
+          isSearching
+              ? ListView.builder(
+                itemCount: searchSuggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = searchSuggestions[index];
+                  return Card(
+                      margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(),
-                      child: const Text('닫기'),
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SizedBox(
+                  height: 80, // 기본보다 조금 더 높은 높이
+                  child: ListTile(
+                  title: Text(suggestion['place_name'] ?? ''),
+                  subtitle: Text(suggestion['address_name'] ?? ''),
+                  onTap: () {
+                  final place = {
+                  'placeName': suggestion['address_name'] ?? '',
+                  'latitude': double.parse(suggestion['y']),
+                  'longitude': double.parse(suggestion['x']),
+                  };
+                  final updatedBookmarks = [...bookmarks, place];
+                  ref.read(bookmarksProvider.notifier).state = updatedBookmarks;
+                  _searchController.stopSearch();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                  );
+                      },
                     ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
+                  ));
+                },
+              )
+              : bookmarks.isEmpty
+              ? const Center(child: Text('즐겨찾는 장소가 없습니다.'))
+              : ListView.builder(
+                itemCount: bookmarks.length,
+                itemBuilder: (context, index) {
+                  final bookmark = bookmarks[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: ListTile(
+                      title: Text(bookmark['placeName']),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          final updatedBookmarks = [...bookmarks]
+                            ..removeAt(index);
+                          ref.read(bookmarksProvider.notifier).state =
+                              updatedBookmarks;
+                        },
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (_) => AlertDialog(
+                                title: Text(bookmark['placeName']),
+                                content: SizedBox(
+                                  width: double.maxFinite,
+                                  child: _AirQualityAndWeatherDetails(
+                                    latitude: bookmark['latitude'],
+                                    longitude: bookmark['longitude'],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(),
+                                    child: const Text('닫기'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
     );
   }
 }
@@ -168,4 +189,3 @@ class _AirQualityAndWeatherDetails extends StatelessWidget {
     );
   }
 }
-
