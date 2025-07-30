@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/search_controller.dart';
+import 'book_marks_data.dart';
 
 final bookmarksProvider = StateProvider<List<Map<String, dynamic>>>(
   (ref) => [
@@ -18,7 +19,7 @@ final bookmarksProvider = StateProvider<List<Map<String, dynamic>>>(
 );
 
 class BookMarksScreen extends ConsumerStatefulWidget {
-  const BookMarksScreen({Key? key}) : super(key: key);
+  const BookMarksScreen({super.key});
 
   @override
   ConsumerState<BookMarksScreen> createState() => _BookMarksScreenState();
@@ -79,34 +80,36 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                 itemBuilder: (context, index) {
                   final suggestion = searchSuggestions[index];
                   return Card(
-                      margin: const EdgeInsets.symmetric(
+                    margin: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
-                  ),
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: SizedBox(
-                  height: 80, // 기본보다 조금 더 높은 높이
-                  child: ListTile(
-                  title: Text(suggestion['place_name'] ?? ''),
-                  subtitle: Text(suggestion['address_name'] ?? ''),
-                  onTap: () {
-                  final place = {
-                  'placeName': suggestion['address_name'] ?? '',
-                  'latitude': double.parse(suggestion['y']),
-                  'longitude': double.parse(suggestion['x']),
-                  };
-                  final updatedBookmarks = [...bookmarks, place];
-                  ref.read(bookmarksProvider.notifier).state = updatedBookmarks;
-                  _searchController.stopSearch();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-                  );
-                      },
                     ),
-                  ));
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SizedBox(
+                      height: 80, // 기본보다 조금 더 높은 높이
+                      child: ListTile(
+                        title: Text(suggestion['place_name'] ?? ''),
+                        subtitle: Text(suggestion['address_name'] ?? ''),
+                        onTap: () {
+                          final place = {
+                            'placeName': suggestion['address_name'] ?? '',
+                            'latitude': double.parse(suggestion['y']),
+                            'longitude': double.parse(suggestion['x']),
+                          };
+                          final updatedBookmarks = [...bookmarks, place];
+                          ref.read(bookmarksProvider.notifier).state =
+                              updatedBookmarks;
+                          _searchController.stopSearch();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                          );
+                        },
+                      ),
+                    ),
+                  );
                 },
               )
               : bookmarks.isEmpty
@@ -166,26 +169,53 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
   }
 }
 
-class _AirQualityAndWeatherDetails extends StatelessWidget {
+class _AirQualityAndWeatherDetails extends ConsumerWidget {
   final double latitude;
   final double longitude;
 
   const _AirQualityAndWeatherDetails({
-    Key? key,
     required this.latitude,
     required this.longitude,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text('대기질: 미세먼지 23㎍/㎥, 초미세먼지 15㎍/㎥, 오존 0.03ppm'),
-        SizedBox(height: 8),
-        Text('날씨: 맑음, 기온 25°C, 습도 60%, 풍속 2.5m/s'),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final airQualityAsync = ref.watch(
+      airQualityByLatLngProvider((lat: latitude, lng: longitude)),
+    );
+
+    return airQualityAsync.when(
+      loading:
+          () => const SizedBox(
+            height: 100,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      error: (error, _) => Text('대기질 정보 불러오기 실패: $error'),
+      data: (data) {
+        if (data.items.isEmpty) {
+          return const Text('대기질 데이터가 없습니다.');
+        }
+
+        final item = data.items.first;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('측정소: ${data.stationName}'),
+            Text('데이터 시간: ${item.dataTime}'),
+            const SizedBox(height: 8),
+            Text('미세먼지(PM10): ${item.pm10Value} ㎍/㎥'),
+            Text('초미세먼지(PM2.5): ${item.pm25Value} ㎍/㎥'),
+            Text('오존(O₃): ${item.o3Value} ppm'),
+            Text('이산화황(SO₂): ${item.so2Value} ppm'),
+            Text('이산화질소(NO₂): ${item.no2Value} ppm'),
+            Text('일산화탄소(CO): ${item.coValue} ppm'),
+            // 필요시 추가 표시 가능
+          ],
+        );
+      },
     );
   }
 }
+
