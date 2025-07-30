@@ -79,36 +79,23 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                 itemCount: searchSuggestions.length,
                 itemBuilder: (context, index) {
                   final suggestion = searchSuggestions[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: SizedBox(
-                      height: 80, // 기본보다 조금 더 높은 높이
-                      child: ListTile(
-                        title: Text(suggestion['place_name'] ?? ''),
-                        subtitle: Text(suggestion['address_name'] ?? ''),
-                        onTap: () {
-                          final place = {
-                            'placeName': suggestion['address_name'] ?? '',
-                            'latitude': double.parse(suggestion['y']),
-                            'longitude': double.parse(suggestion['x']),
-                          };
-                          final updatedBookmarks = [...bookmarks, place];
-                          ref.read(bookmarksProvider.notifier).state =
-                              updatedBookmarks;
-                          _searchController.stopSearch();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-                          );
-                        },
-                      ),
-                    ),
+                  return ListTile(
+                    title: Text(suggestion['place_name'] ?? ''),
+                    subtitle: Text(suggestion['address_name'] ?? ''),
+                    onTap: () {
+                      final place = {
+                        'placeName': suggestion['address_name'] ?? '',
+                        'latitude': double.parse(suggestion['y']),
+                        'longitude': double.parse(suggestion['x']),
+                      };
+                      final updatedBookmarks = [...bookmarks, place];
+                      ref.read(bookmarksProvider.notifier).state =
+                          updatedBookmarks;
+                      _searchController.stopSearch();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                      );
+                    },
                   );
                 },
               )
@@ -218,4 +205,3 @@ class _AirQualityAndWeatherDetails extends ConsumerWidget {
     );
   }
 }
-
