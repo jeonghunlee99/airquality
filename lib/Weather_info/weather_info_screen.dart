@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/search_controller.dart';
+import '../utils/weather_code_utils.dart';
 import 'Weather_info_data.dart';
 
 class WeatherInfoScreen extends ConsumerStatefulWidget {
@@ -175,8 +176,8 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                       ),
                                     ],
                                   ),
-                                  Text('☁️ 하늘상태: ${_getSky(closest.sky)}'),
-                                  Text('🌧️ 강수형태: ${_getPty(closest.pty)}'),
+                                  Text('☁️ 하늘상태: ${getSky(closest.sky)}'),
+                                  Text('🌧️ 강수형태: ${getPty(closest.pty)}'),
                                   Text('🌂 강수량: ${closest.pcp}'),
                                   Text('📈 강수확률: ${closest.pop}%'),
                                 ],
@@ -280,10 +281,10 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                                   ),
                                                   const SizedBox(height: 4),
                                                   Text(
-                                                    '☁️ 하늘상태: ${_getSky(item.sky)}',
+                                                    '☁️ 하늘상태: ${getSky(item.sky)}',
                                                   ),
                                                   Text(
-                                                    '🌧️ 강수형태: ${_getPty(item.pty)}',
+                                                    '🌧️ 강수형태: ${getPty(item.pty)}',
                                                   ),
                                                   Text('🌂 강수량: ${item.pcp}'),
                                                   Text('📈 강수확률: ${item.pop}%'),
@@ -316,7 +317,7 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                                 const SizedBox(height: 4),
                                                 Text('💧 ${item.humidity}%'),
                                                 const SizedBox(height: 4),
-                                                Text(_getSkyEmoji(item.sky)),
+                                                Text(getSkyEmoji(item.sky)),
                                               ],
                                             ),
                                           ),
@@ -379,45 +380,3 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
   }
 }
 
-String _getSky(String code) {
-  switch (code) {
-    case '1':
-      return '맑음';
-    case '3':
-      return '구름많음';
-    case '4':
-      return '흐림';
-    default:
-      return '-';
-  }
-}
-
-String _getPty(String code) {
-  switch (code) {
-    case '0':
-      return '없음';
-    case '1':
-      return '비';
-    case '2':
-      return '비/눈';
-    case '3':
-      return '눈';
-    case '4':
-      return '소나기';
-    default:
-      return '-';
-  }
-}
-
-String _getSkyEmoji(String code) {
-  switch (code) {
-    case '1':
-      return '☀️';
-    case '3':
-      return '⛅';
-    case '4':
-      return '☁️';
-    default:
-      return '❓';
-  }
-}
