@@ -167,41 +167,100 @@ class _AirQualityAndWeatherDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final airQualityAsync = ref.watch(
-      airQualityByLatLngProvider((lat: latitude, lng: longitude)),
+    final asyncData = ref.watch(
+      airQualityAndWeatherProvider((lat: latitude, lng: longitude)),
     );
 
-    return airQualityAsync.when(
-      loading:
-          () => const SizedBox(
-            height: 100,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-      error: (error, _) => Text('대기질 정보 불러오기 실패: $error'),
-      data: (data) {
-        if (data.items.isEmpty) {
-          return const Text('대기질 데이터가 없습니다.');
-        }
 
-        final item = data.items.first;
+    return asyncData.when(
+      loading: () => const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Text('정보 불러오기 실패: $error'),
+      data: (data) {
+        final aq = data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
+        final weather = data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('측정소: ${data.stationName}'),
-            Text('데이터 시간: ${item.dataTime}'),
-            const SizedBox(height: 8),
-            Text('미세먼지(PM10): ${item.pm10Value} ㎍/㎥'),
-            Text('초미세먼지(PM2.5): ${item.pm25Value} ㎍/㎥'),
-            Text('오존(O₃): ${item.o3Value} ppm'),
-            Text('이산화황(SO₂): ${item.so2Value} ppm'),
-            Text('이산화질소(NO₂): ${item.no2Value} ppm'),
-            Text('일산화탄소(CO): ${item.coValue} ppm'),
-            // 필요시 추가 표시 가능
+            if (aq != null) ...[
+              Text('📍 측정소: ${data.stationName}'),
+              Text('🕒 데이터 시간: ${aq.dataTime}'),
+              const SizedBox(height: 8),
+              Text('미세먼지(PM10): ${aq.pm10Value} ㎍/㎥'),
+              Text('초미세먼지(PM2.5): ${aq.pm25Value} ㎍/㎥'),
+              Text('오존(O₃): ${aq.o3Value} ppm'),
+              Text('이산화황(SO₂): ${aq.so2Value} ppm'),
+              Text('이산화질소(NO₂): ${aq.no2Value} ppm'),
+              Text('일산화탄소(CO): ${aq.coValue} ppm'),
+            ],
+            const SizedBox(height: 12),
+            if (weather != null) ...[
+              Text('☀️ 최근 날씨 예보'),
+              Text('시간: ${weather.time}'),
+              Text('기온: ${weather.temp}°C'),
+              Text('습도: ${weather.humidity}%'),
+              Text('풍속: ${weather.windSpeed} m/s'),
+              Text('풍향: ${weather.windDir}°'),
+              Text('하늘 상태: ${_getSky(weather.sky)}'),
+              Text('강수형태: ${_getPty(weather.pty)}'),
+              Text('강수량: ${weather.pcp}'),
+              Text('강수확률: ${weather.pop}%'),
+              Text('🌡 ${weather.temp}°'),
+              const SizedBox(height: 4),
+              Text('💧 ${weather.humidity}%'),
+              const SizedBox(height: 4),
+              Text(_getSkyEmoji(weather.sky)),
+            ],
           ],
         );
       },
     );
+  }
+}
+
+String _getSky(String code) {
+  switch (code) {
+    case '1':
+      return '맑음';
+    case '3':
+      return '구름많음';
+    case '4':
+      return '흐림';
+    default:
+      return '-';
+  }
+}
+
+String _getPty(String code) {
+  switch (code) {
+    case '0':
+      return '없음';
+    case '1':
+      return '비';
+    case '2':
+      return '비/눈';
+    case '3':
+      return '눈';
+    case '4':
+      return '소나기';
+    default:
+      return '-';
+  }
+}
+
+String _getSkyEmoji(String code) {
+  switch (code) {
+    case '1':
+      return '☀️';
+    case '3':
+      return '⛅';
+    case '4':
+      return '☁️';
+    default:
+      return '❓';
   }
 }
