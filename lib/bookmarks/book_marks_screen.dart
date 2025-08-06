@@ -130,22 +130,70 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                         showDialog(
                           context: context,
                           builder:
-                              (_) => AlertDialog(
-                                title: Text(bookmark['placeName']),
-                                content: SizedBox(
-                                  width: double.maxFinite,
-                                  child: _AirQualityAndWeatherDetails(
-                                    latitude: bookmark['latitude'],
-                                    longitude: bookmark['longitude'],
+                              (_) => Dialog(
+                                insetPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 24,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height:
+                                      MediaQuery.of(context).size.height *
+                                      0.9, // 화면 85% 높이
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          24,
+                                          24,
+                                          24,
+                                          8,
+                                        ),
+                                        child: Text(
+                                          bookmark['placeName'],
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+
+                                      const Divider(height: 1),
+
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.all(16),
+                                          child: _AirQualityAndWeatherDetails(
+                                            latitude: bookmark['latitude'],
+                                            longitude: bookmark['longitude'],
+                                          ),
+                                        ),
+                                      ),
+
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          0,
+                                          0,
+                                          0,
+                                          16,
+                                        ),
+                                        child: TextButton(
+                                          onPressed:
+                                              () => Navigator.of(context).pop(),
+                                          child: const Text(
+                                            '닫기',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(),
-                                    child: const Text('닫기'),
-                                  ),
-                                ],
                               ),
                         );
                       },
@@ -172,54 +220,127 @@ class _AirQualityAndWeatherDetails extends ConsumerWidget {
       airQualityAndWeatherProvider((lat: latitude, lng: longitude)),
     );
 
-
     return asyncData.when(
-      loading: () => const SizedBox(
-        height: 100,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Text('정보 불러오기 실패: $error'),
+      loading:
+          () => const SizedBox(
+            height: 100,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('정보 불러오기 실패: $error'),
+          ),
       data: (data) {
-        final aq = data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
-        final item = data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
+        final aq =
+            data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
+        final item =
+            data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (aq != null) ...[
-              Text('📍 측정소: ${data.stationName}'),
-              Text('🕒 데이터 시간: ${aq.dataTime}'),
-              const SizedBox(height: 8),
-              Text('미세먼지(PM10): ${aq.pm10Value} ㎍/㎥'),
-              Text('초미세먼지(PM2.5): ${aq.pm25Value} ㎍/㎥'),
-              Text('오존(O₃): ${aq.o3Value} ppm'),
-              Text('이산화황(SO₂): ${aq.so2Value} ppm'),
-              Text('이산화질소(NO₂): ${aq.no2Value} ppm'),
-              Text('일산화탄소(CO): ${aq.coValue} ppm'),
+        return SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (aq != null)
+                _InfoCard(
+                  title: '📍 대기질 정보',
+                  subtitle: '측정소: ${data.stationName}',
+                  children: [
+                    _InfoTile('🕒 데이터 시간', aq.dataTime),
+                    _InfoTile('미세먼지(PM10)', '${aq.pm10Value} ㎍/㎥'),
+                    _InfoTile('초미세먼지(PM2.5)', '${aq.pm25Value} ㎍/㎥'),
+                    _InfoTile('오존(O₃)', '${aq.o3Value} ppm'),
+                    _InfoTile('이산화황(SO₂)', '${aq.so2Value} ppm'),
+                    _InfoTile('이산화질소(NO₂)', '${aq.no2Value} ppm'),
+                    _InfoTile('일산화탄소(CO)', '${aq.coValue} ppm'),
+                  ],
+                ),
+              const SizedBox(height: 24),
+              if (item != null)
+                _InfoCard(
+                  title: '🌤️ 날씨 예보',
+                  subtitle: '🕒 시간: ${item.time}',
+                  children: [
+                    _InfoTile('🌡️ 기온', '${item.temp}°C'),
+                    _InfoTile('💧 습도', '${item.humidity}%'),
+                    _InfoTile('💨 풍속', '${item.windSpeed} m/s'),
+                    _InfoTile('🧭 풍향', '${item.windDir}°'),
+                    _InfoTile('☁️ 하늘 상태', getSky(item.sky)),
+                    _InfoTile('🌧️ 강수형태', getPty(item.pty)),
+                    _InfoTile('🌂 강수량', item.pcp),
+                    _InfoTile('📈 강수확률', '${item.pop}%'),
+                  ],
+                ),
             ],
-            const SizedBox(height: 12),
-            if (item != null) ...[
-              Text('☀️ 최근 날씨 예보'),
-              Text('시간: ${item.time}'),
-              Text('기온: ${item.temp}°C'),
-              Text('습도: ${item.humidity}%'),
-              Text('풍속: ${item.windSpeed} m/s'),
-              Text('풍향: ${item.windDir}°'),
-              Text('하늘 상태: ${getSky(item.sky)}'),
-              Text('강수형태: ${getPty(item.pty)}'),
-              Text('강수량: ${item.pcp}'),
-              Text('강수확률: ${item.pop}%'),
-              Text('🌡 ${item.temp}°'),
-              const SizedBox(height: 4),
-              Text('💧 ${item.humidity}%'),
-              const SizedBox(height: 4),
-              Text(getSkyEmoji(item.sky)),
-            ],
-          ],
+          ),
         );
       },
     );
   }
 }
 
+class _InfoCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<Widget> children;
+
+  const _InfoCard({
+    required this.title,
+    required this.subtitle,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      child: Container(
+        width: 280,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const Divider(height: 24, thickness: 1.2),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoTile(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+        ],
+      ),
+    );
+  }
+}
