@@ -46,7 +46,9 @@ class AirQualityCityView extends ConsumerWidget {
                   height: MediaQuery.of(context).size.height * 0.85,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.white, Colors.yellow[200]!],
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                          : [Colors.white, Colors.yellow[200]!],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -71,7 +73,9 @@ class AirQualityCityView extends ConsumerWidget {
                             context,
                           ).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -117,24 +121,32 @@ class AirQualityCityView extends ConsumerWidget {
                                 ref.read(isLoadingProvider.notifier).state =
                                     false;
                               },
-                              icon: const Icon(
+                              icon:  Icon(
                                 Icons.my_location,
-                                color: Colors.black,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black
                               ),
-                              label: const Text(
+                              label: Text(
                                 '현재 위치 재조회',
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black),
                               ),
                             ),
                             TextButton.icon(
                               onPressed: () => showInfoDialog(context),
-                              icon: const Icon(
+                              icon:  Icon(
                                 Icons.info_outline,
-                                color: Colors.black,
+                                color:  Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black
                               ),
-                              label: const Text(
+                              label:  Text(
                                 '지수 설명',
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black)
                               ),
                             ),
                           ],
@@ -191,7 +203,8 @@ Widget buildAirQualityCard(String label, String value, String type) {
         children: [
           Icon(level.icon, color: level.color, size: 32),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold,
+          color: Colors.black),),
           const SizedBox(height: 4),
           Text('$value (${level.label})', style: TextStyle(color: level.color)),
         ],
