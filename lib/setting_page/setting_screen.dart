@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SettingsScreen extends StatelessWidget {
+
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+
+
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text("설정"), elevation: 0),
+      appBar: AppBar(title: const Text("설정"), elevation: 0,
+        centerTitle: true,),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300, width: 1.5),
+              gradient: const LinearGradient(
+                colors: [Colors.white, Color(0xFFB3E5FC)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(color: Colors.grey, width: 1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
-                // 네
+
                 _buildSwitchTile(
                   icon: Icons.notifications,
                   iconColor: Colors.blue.shade600,
@@ -27,16 +38,18 @@ class SettingsScreen extends StatelessWidget {
                   value: true,
                   onChanged: (val) {},
                 ),
-                const SizedBox(height: 12),
 
                 _buildSwitchTile(
                   icon: Icons.dark_mode,
                   iconColor: Colors.deepPurple.shade400,
                   title: "다크 모드",
-                  value: false,
-                  onChanged: (val) {},
+                  value: ref.watch(themeModeProvider) == ThemeMode.dark,
+                  onChanged: (val) {
+                    ref.read(themeModeProvider.notifier).state =
+                    val ? ThemeMode.dark : ThemeMode.light;
+                  },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
 
                 _buildSettingTile(
                   icon: Icons.privacy_tip,
@@ -44,7 +57,7 @@ class SettingsScreen extends StatelessWidget {
                   title: "개인정보 처리방침",
                   onTap: () {},
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
 
                 _buildSettingTile(
                   icon: Icons.description,
@@ -52,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
                   title: "이용약관",
                   onTap: () {},
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
 
                 _buildSettingTile(
                   icon: Icons.info,
@@ -104,6 +117,10 @@ class SettingsScreen extends StatelessWidget {
     required String title,
     required bool value,
     required ValueChanged<bool> onChanged,
+    Color activeColor = Colors.white,
+    Color activeTrackColor = Colors.grey,
+    Color inactiveThumbColor = Colors.white,
+    Color inactiveTrackColor = Colors.grey,
   }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -113,9 +130,14 @@ class SettingsScreen extends StatelessWidget {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
         value: value,
         onChanged: onChanged,
+        activeColor: activeColor,
+        activeTrackColor: activeTrackColor,
+        inactiveThumbColor: inactiveThumbColor,
+        inactiveTrackColor: inactiveTrackColor,
       ),
     );
   }
+
 
   Widget _buildSettingTile({
     required IconData icon,
