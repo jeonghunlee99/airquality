@@ -20,8 +20,10 @@ class SettingsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.white, Color(0xFFB3E5FC)],
+              gradient: LinearGradient(
+                colors: Theme.of(context).brightness == Brightness.dark
+                    ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                    : [Colors.white, Color(0xFFB3E5FC)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -86,8 +88,10 @@ class SettingsScreen extends ConsumerWidget {
             },
             child: Container(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.white, Color(0xFFB3E5FC)],
+                gradient: LinearGradient(
+                  colors: Theme.of(context).brightness == Brightness.dark
+                      ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                      : [Colors.white, Color(0xFFB3E5FC)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -101,7 +105,9 @@ class SettingsScreen extends ConsumerWidget {
                 style: GoogleFonts.notoSansKr(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
                 ),
               ),
             ),
