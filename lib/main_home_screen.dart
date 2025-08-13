@@ -1,3 +1,4 @@
+import 'package:airquality/setting_page/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'Weather_info_page/weather_info_screen.dart';
@@ -16,7 +17,7 @@ class MainHomeScreen extends ConsumerWidget {
       AirQualityScreen(),
       WeatherInfoScreen(),
       BookMarksScreen(),
-      Center(child: Text('설정 및 로그인')),
+      SettingsScreen(),
     ];
 
     return Scaffold(
