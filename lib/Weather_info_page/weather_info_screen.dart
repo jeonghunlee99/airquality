@@ -30,6 +30,11 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+    final textStyle = TextStyle(color: textColor);
     final nx = ref.watch(nxProvider);
     final ny = ref.watch(nyProvider);
     final weatherAsync = ref.watch(weatherProvider);
@@ -137,10 +142,14 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white,
-                                    Color(0xFFB3E5FC),
-                                  ],
+                                  colors:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? [
+                                            Colors.grey.shade900,
+                                            Colors.blueGrey.shade800,
+                                          ]
+                                          : [Colors.white, Color(0xFFB3E5FC)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -162,20 +171,28 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: Text('🌡️ 기온: ${closest.temp}°C'),
+                                          child: Text(
+                                            '🌡️ 기온: ${closest.temp}°C',
+                                          ),
                                         ),
                                         Expanded(
-                                          child: Text('💧 습도: ${closest.humidity}%'),
+                                          child: Text(
+                                            '💧 습도: ${closest.humidity}%',
+                                          ),
                                         ),
                                       ],
                                     ),
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: Text('💨 풍속: ${closest.windSpeed} m/s'),
+                                          child: Text(
+                                            '💨 풍속: ${closest.windSpeed} m/s',
+                                          ),
                                         ),
                                         Expanded(
-                                          child: Text('🧭 풍향: ${closest.windDir}°'),
+                                          child: Text(
+                                            '🧭 풍향: ${closest.windDir}°',
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -231,70 +248,120 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                     vertical: 12,
                                   ),
                                   child:
-                                  isSelected
-                                      ? Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Colors.white,
-                                          Color(0xFFB3E5FC), // 연한 하늘색
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.2),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${item.time} 예보',
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
+                                      isSelected
+                                          ? Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              gradient: LinearGradient(
+                                                colors:
+                                                    Theme.of(
+                                                              context,
+                                                            ).brightness ==
+                                                            Brightness.dark
+                                                        ? [
+                                                          Colors.grey.shade900,
+                                                          Colors
+                                                              .blueGrey
+                                                              .shade800,
+                                                        ]
+                                                        : [
+                                                          Colors.white,
+                                                          Color(0xFFB3E5FC),
+                                                        ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.2),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Row(
-                                            children: [
-                                              Expanded(child: Text('🌡️ 기온: ${item.temp}°C')),
-                                              Expanded(child: Text('💧 습도: ${item.humidity}%')),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Expanded(child: Text('💨 풍속: ${item.windSpeed} m/s')),
-                                              Expanded(child: Text('🧭 풍향: ${item.windDir}°')),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text('☁️ 하늘상태: ${getSky(item.sky)}'),
-                                          Text('🌧️ 강수형태: ${getPty(item.pty)}'),
-                                          Text('🌂 강수량: ${item.pcp}'),
-                                          Text('📈 강수확률: ${item.pop}%'),
-                                        ],
-                                      ),
-                                    ),
-                                  )
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    '${item.time} 예보',
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          '🌡️ 기온: ${item.temp}°C',
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '💧 습도: ${item.humidity}%',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          '💨 풍속: ${item.windSpeed} m/s',
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '🧭 풍향: ${item.windDir}°',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    '☁️ 하늘상태: ${getSky(item.sky)}',
+                                                  ),
+                                                  Text(
+                                                    '🌧️ 강수형태: ${getPty(item.pty)}',
+                                                  ),
+                                                  Text('🌂 강수량: ${item.pcp}'),
+                                                  Text('📈 강수확률: ${item.pop}%'),
+                                                ],
+                                              ),
+                                            ),
+                                          )
                                           : Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: Colors.grey.shade100,
+                                              gradient: LinearGradient(
+                                                colors:
+                                                    Theme.of(
+                                                              context,
+                                                            ).brightness ==
+                                                            Brightness.dark
+                                                        ? [
+                                                          Colors.grey.shade900,
+                                                          Colors
+                                                              .blueGrey
+                                                              .shade800,
+                                                        ]
+                                                        : [
+                                                          Colors.white,
+                                                          Color(0xFFB3E5FC),
+                                                        ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: Colors.grey.shade300,
-                                              ),
                                             ),
                                             child: Column(
                                               mainAxisAlignment:
@@ -302,16 +369,23 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                               children: [
                                                 Text(
                                                   item.time,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                  style: textStyle,
                                                 ),
                                                 const SizedBox(height: 4),
-                                                Text('🌡 ${item.temp}°'),
+                                                Text(
+                                                  '🌡 ${item.temp}°',
+                                                  style: textStyle,
+                                                ),
                                                 const SizedBox(height: 4),
-                                                Text('💧 ${item.humidity}%'),
+                                                Text(
+                                                  '💧 ${item.humidity}%',
+                                                  style: textStyle,
+                                                ),
                                                 const SizedBox(height: 4),
-                                                Text(getSkyEmoji(item.sky)),
+                                                Text(
+                                                  getSkyEmoji(item.sky),
+                                                  style: textStyle,
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -373,4 +447,3 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
     );
   }
 }
-
