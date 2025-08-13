@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import '../Weather_info/Weather_info_controller..dart';
+import '../Weather_info_page/Weather_info_controller..dart';
 import '../utils/tm_converter.dart';
 import 'air_quality_data.dart';
 

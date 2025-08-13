@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'airquality/air_quality_controller.dart';
+import 'airquality_page/air_quality_controller.dart';
 import 'main_home_screen.dart';
 
 void main() {

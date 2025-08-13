@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:proj4dart/proj4dart.dart';
-
-import '../airquality/air_quality_data.dart';
+import '../airquality_page/air_quality_data.dart';
 
 final wgs84 = Projection.get('EPSG:4326')!;
 final tmMid = Projection.add(
