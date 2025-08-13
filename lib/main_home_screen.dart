@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'Weather_info_page/weather_info_screen.dart';
+import 'airquality_page/air_quality_screen.dart';
+import 'bookmarks_page/book_marks_screen.dart';
 
-import 'Weather_info/weather_info_screen.dart';
-import 'airquality/air_quality_screen.dart';
-import 'bookmarks/book_marks_screen.dart';
 
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);

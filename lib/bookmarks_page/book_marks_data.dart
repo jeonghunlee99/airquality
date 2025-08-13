@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../Weather_info/Weather_info_data.dart';
-import '../airquality/air_quality_data.dart';
+import '../Weather_info_page/Weather_info_data.dart';
+import '../airquality_page/air_quality_data.dart';
 import '../utils/tm_converter.dart';
 
 final airQualityAndWeatherProvider = FutureProvider.family<
