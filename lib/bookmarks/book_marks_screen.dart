@@ -49,6 +49,7 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title:
             isSearching
                 ? TextField(
