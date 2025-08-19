@@ -336,26 +336,39 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      child: Container(
-        width: 280,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+              : [Colors.white, const Color(0xFFB3E5FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((0.2 * 255).round()),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            Text(title,
+                style:
+                const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-            const Divider(height: 24, thickness: 1.2),
+            Text(subtitle,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            const Divider(height: 24, thickness: 1.2, color: Colors.black26),
             ...children,
           ],
         ),
@@ -363,6 +376,7 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
+
 
 class _InfoTile extends StatelessWidget {
   final String label;
