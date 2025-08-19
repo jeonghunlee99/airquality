@@ -43,6 +43,9 @@ dependencies:
   kakao_flutter_sdk_user: ^1.9.7+3
   kakao_flutter_sdk_common: ^1.9.7+3
   google_fonts: ^6.1.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  google_sign_in: ^6.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
