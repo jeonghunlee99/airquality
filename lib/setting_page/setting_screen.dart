@@ -4,18 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../utils/auth_service.dart';
 
-
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
-
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("설정"), elevation: 0,
-        centerTitle: true,),
+      appBar: AppBar(title: const Text("설정"), elevation: 0, centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -23,9 +22,10 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: Theme.of(context).brightness == Brightness.dark
-                    ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                    : [Colors.white, Color(0xFFB3E5FC)],
+                colors:
+                    Theme.of(context).brightness == Brightness.dark
+                        ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                        : [Colors.white, const Color(0xFFB3E5FC)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -34,7 +34,6 @@ class SettingsScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
-
                 _buildSwitchTile(
                   icon: Icons.notifications,
                   iconColor: Colors.blue.shade600,
@@ -42,7 +41,6 @@ class SettingsScreen extends ConsumerWidget {
                   value: true,
                   onChanged: (val) {},
                 ),
-
                 _buildSwitchTile(
                   icon: Icons.dark_mode,
                   iconColor: Colors.deepPurple.shade400,
@@ -50,27 +48,22 @@ class SettingsScreen extends ConsumerWidget {
                   value: ref.watch(themeModeProvider) == ThemeMode.dark,
                   onChanged: (val) {
                     ref.read(themeModeProvider.notifier).state =
-                    val ? ThemeMode.dark : ThemeMode.light;
+                        val ? ThemeMode.dark : ThemeMode.light;
                   },
                 ),
                 const SizedBox(height: 2),
-
                 _buildSettingTile(
                   icon: Icons.privacy_tip,
                   iconColor: Colors.teal,
                   title: "개인정보 처리방침",
                   onTap: () {},
                 ),
-                const SizedBox(height: 2),
-
                 _buildSettingTile(
                   icon: Icons.description,
                   iconColor: Colors.orange,
                   title: "이용약관",
                   onTap: () {},
                 ),
-                const SizedBox(height: 2),
-
                 _buildSettingTile(
                   icon: Icons.info,
                   iconColor: Colors.blueGrey,
@@ -83,47 +76,70 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          SizedBox(height: 25),
-          GestureDetector(
-            onTap: () async {
-              final user = await AuthService().signInWithGoogle();
+
+          const SizedBox(height: 25),
+
+          authState.when(
+            data: (user) {
               if (user != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("환영합니다, ${user.displayName}!")),
+                return GestureDetector(
+                  onTap: () async {
+                    await AuthService().signOut();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("로그아웃 되었습니다.")),
+                    );
+                  },
+                  child: _buildButton(context, "로그아웃", Colors.redAccent),
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("로그인 취소됨")),
+                return GestureDetector(
+                  onTap: () async {
+                    final user = await AuthService().signInWithGoogle();
+                    if (user != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("환영합니다, ${user.displayName}!")),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text("로그인 취소됨")));
+                    }
+                  },
+                  child: _buildButton(context, "로그인", Colors.black),
                 );
               }
             },
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: Theme.of(context).brightness == Brightness.dark
-                      ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                      : [Colors.white, const Color(0xFFB3E5FC)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.grey, width: 1),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              alignment: Alignment.center,
-              child: Text(
-                "로그인",
-                style: GoogleFonts.notoSansKr(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                ),
-              ),
-            ),
-          )
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text("오류 발생: $e")),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildButton(BuildContext context, String text, Color textColor) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors:
+              Theme.of(context).brightness == Brightness.dark
+                  ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                  : [Colors.white, const Color(0xFFB3E5FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey, width: 1),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        style: GoogleFonts.notoSansKr(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
       ),
     );
   }
@@ -154,7 +170,6 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-
 
   Widget _buildSettingTile({
     required IconData icon,
