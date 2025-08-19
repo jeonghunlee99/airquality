@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../utils/auth_service.dart';
 import '../utils/search_controller.dart';
 import '../utils/weather_code_utils.dart';
 import 'book_marks_data.dart';
@@ -46,6 +47,7 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
     final isSearching = ref.watch(isSearchingProvider);
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
     final bookmarks = ref.watch(bookmarksProvider);
+    final authState = ref.watch(authStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,134 +77,173 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
           ),
         ],
       ),
-      body:
-          isSearching
-              ? ListView.builder(
-                itemCount: searchSuggestions.length,
-                itemBuilder: (context, index) {
-                  final suggestion = searchSuggestions[index];
-                  return ListTile(
-                    title: Text(suggestion['place_name'] ?? ''),
-                    subtitle: Text(suggestion['address_name'] ?? ''),
-                    onTap: () {
-                      final place = {
-                        'placeName': suggestion['address_name'] ?? '',
-                        'latitude': double.parse(suggestion['y']),
-                        'longitude': double.parse(suggestion['x']),
-                      };
-                      final updatedBookmarks = [...bookmarks, place];
-                      ref.read(bookmarksProvider.notifier).state =
-                          updatedBookmarks;
-                      _searchController.stopSearch();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-                      );
-                    },
-                  );
-                },
-              )
-              : bookmarks.isEmpty
-              ? const Center(child: Text('즐겨찾는 장소가 없습니다.'))
-              : ListView.builder(
-            itemCount: bookmarks.length,
-            itemBuilder: (context, index) {
-              final bookmark = bookmarks[index];
-              final gradientColors = Theme.of(context).brightness == Brightness.dark
-                  ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                  : [Colors.white, Color(0xFFB3E5FC)];
+      body: authState.when(
+        data: (user) {
+          if (user == null) {
+            return const Center(
+              child: Text(
+                "로그인 후 즐겨찾기를 사용할 수 있습니다.",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            );
+          }
 
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: gradientColors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  title: Text(
-                    bookmark['placeName'],
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
-                    ),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      final updatedBookmarks = [...bookmarks]..removeAt(index);
-                      ref.read(bookmarksProvider.notifier).state = updatedBookmarks;
-                    },
-                  ),
+          if (isSearching) {
+            return ListView.builder(
+              itemCount: searchSuggestions.length,
+              itemBuilder: (context, index) {
+                final suggestion = searchSuggestions[index];
+                return ListTile(
+                  title: Text(suggestion['place_name'] ?? ''),
+                  subtitle: Text(suggestion['address_name'] ?? ''),
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => Dialog(
-                        insetPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height * 0.9,
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                                child: Text(
-                                  bookmark['placeName'],
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const Divider(height: 1),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  padding: const EdgeInsets.all(16),
-                                  child: _AirQualityAndWeatherDetails(
-                                    latitude: bookmark['latitude'],
-                                    longitude: bookmark['longitude'],
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
-                                child: TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text(
-                                    '닫기',
-                                    style: TextStyle(
-                                      color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    final place = {
+                      'placeName': suggestion['address_name'] ?? '',
+                      'latitude': double.parse(suggestion['y']),
+                      'longitude': double.parse(suggestion['x']),
+                    };
+                    final updatedBookmarks = [...bookmarks, place];
+                    ref.read(bookmarksProvider.notifier).state =
+                        updatedBookmarks;
+                    _searchController.stopSearch();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
                     );
                   },
-                ),
-              );
-            },
-          ),
+                );
+              },
+            );
+          } else if (bookmarks.isEmpty) {
+            return const Center(child: Text('즐겨찾는 장소가 없습니다.'));
+          } else {
+            return ListView.builder(
+              itemCount: bookmarks.length,
+              itemBuilder: (context, index) {
+                final bookmark = bookmarks[index];
+                final gradientColors =
+                    Theme.of(context).brightness == Brightness.dark
+                        ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                        : [Colors.white, Color(0xFFB3E5FC)];
 
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      bookmark['placeName'],
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        final updatedBookmarks = [...bookmarks]
+                          ..removeAt(index);
+                        ref.read(bookmarksProvider.notifier).state =
+                            updatedBookmarks;
+                      },
+                    ),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (_) => Dialog(
+                              insetPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 24,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.9,
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        24,
+                                        24,
+                                        8,
+                                      ),
+                                      child: Text(
+                                        bookmark['placeName'],
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const Divider(height: 1),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        padding: const EdgeInsets.all(16),
+                                        child: _AirQualityAndWeatherDetails(
+                                          latitude: bookmark['latitude'],
+                                          longitude: bookmark['longitude'],
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        0,
+                                        0,
+                                        0,
+                                        16,
+                                      ),
+                                      child: TextButton(
+                                        onPressed:
+                                            () => Navigator.of(context).pop(),
+                                        child: Text(
+                                          '닫기',
+                                          style: TextStyle(
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          }
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("에러 발생: $e")),
+      ),
     );
   }
 }
