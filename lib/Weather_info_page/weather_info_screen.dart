@@ -43,7 +43,9 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? Colors.white
+          : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         forceMaterialTransparency: true,
         centerTitle: true,

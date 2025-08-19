@@ -14,7 +14,9 @@ class SettingsScreen extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? Colors.white
+          : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("설정"),
         elevation: 0,
