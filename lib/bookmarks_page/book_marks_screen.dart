@@ -50,7 +50,9 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        forceMaterialTransparency: true,
         centerTitle: true,
         title:
             isSearching

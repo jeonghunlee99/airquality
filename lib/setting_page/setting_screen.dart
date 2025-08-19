@@ -14,7 +14,13 @@ class SettingsScreen extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("설정"), elevation: 0, centerTitle: true),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("설정"),
+        elevation: 0,
+        centerTitle: true,
+        forceMaterialTransparency: true,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

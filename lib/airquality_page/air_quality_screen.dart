@@ -35,9 +35,12 @@ class _CurrentLocationAirQualityScreenState
     final isSearching = ref.watch(isSearchingProvider);
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+
         forceMaterialTransparency: true,
         centerTitle: true,
+
         title:
             isSearching
                 ? TextField(
