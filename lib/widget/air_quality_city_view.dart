@@ -45,10 +45,15 @@ class AirQualityCityView extends ConsumerWidget {
                   width: MediaQuery.of(context).size.width * 0.85,
                   height: MediaQuery.of(context).size.height * 0.85,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: Theme.of(context).brightness == Brightness.dark
-                          ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                          : [Colors.white, Colors.yellow[200]!],
+                      gradient: LinearGradient(
+                        colors:
+                        Theme.of(context).brightness ==
+                            Brightness.dark
+                            ? [
+                          Colors.grey.shade900,
+                          Colors.blueGrey.shade800,
+                        ]
+                            : [Colors.white, Color(0xFFB3E5FC)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

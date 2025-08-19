@@ -104,104 +104,105 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
               : bookmarks.isEmpty
               ? const Center(child: Text('즐겨찾는 장소가 없습니다.'))
               : ListView.builder(
-                itemCount: bookmarks.length,
-                itemBuilder: (context, index) {
-                  final bookmark = bookmarks[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+            itemCount: bookmarks.length,
+            itemBuilder: (context, index) {
+              final bookmark = bookmarks[index];
+              final gradientColors = Theme.of(context).brightness == Brightness.dark
+                  ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                  : [Colors.white, Color(0xFFB3E5FC)];
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
                     ),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  ],
+                ),
+                child: ListTile(
+                  title: Text(
+                    bookmark['placeName'],
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
                     ),
-                    child: ListTile(
-                      title: Text(bookmark['placeName']),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          final updatedBookmarks = [...bookmarks]
-                            ..removeAt(index);
-                          ref.read(bookmarksProvider.notifier).state =
-                              updatedBookmarks;
-                        },
-                      ),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (_) => Dialog(
-                                insetPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 24,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height:
-                                      MediaQuery.of(context).size.height *
-                                      0.9, // 화면 85% 높이
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          24,
-                                          24,
-                                          24,
-                                          8,
-                                        ),
-                                        child: Text(
-                                          bookmark['placeName'],
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-
-                                      const Divider(height: 1),
-
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          padding: const EdgeInsets.all(16),
-                                          child: _AirQualityAndWeatherDetails(
-                                            latitude: bookmark['latitude'],
-                                            longitude: bookmark['longitude'],
-                                          ),
-                                        ),
-                                      ),
-
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          0,
-                                          0,
-                                          0,
-                                          16,
-                                        ),
-                                        child: TextButton(
-                                          onPressed:
-                                              () => Navigator.of(context).pop(),
-                                          child: const Text(
-                                            '닫기',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      final updatedBookmarks = [...bookmarks]..removeAt(index);
+                      ref.read(bookmarksProvider.notifier).state = updatedBookmarks;
+                    },
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        insetPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.9,
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                                child: Text(
+                                  bookmark['placeName'],
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+                              const Divider(height: 1),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.all(16),
+                                  child: _AirQualityAndWeatherDetails(
+                                    latitude: bookmark['latitude'],
+                                    longitude: bookmark['longitude'],
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                                child: TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text(
+                                    '닫기',
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+
     );
   }
 }
