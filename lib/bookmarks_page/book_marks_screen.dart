@@ -94,7 +94,9 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                       'longitude': double.parse(suggestion['x']),
                     };
 
-                    await addBookmark(ref, place);
+                    final controller = ref.read(bookmarksControllerProvider);
+
+                    await controller.addBookmark(place);
 
                     _searchController.stopSearch();
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -154,7 +156,11 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                         trailing: IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
-                            deleteBookmark(ref, bookmark['id']);
+                            final controller = ref.read(
+                              bookmarksControllerProvider,
+                            );
+
+                            controller.deleteBookmark(bookmark['id']);
                           },
                         ),
                         onTap: () {
