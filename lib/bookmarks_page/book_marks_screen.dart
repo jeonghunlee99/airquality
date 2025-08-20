@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/auth_service.dart';
@@ -5,20 +6,22 @@ import '../utils/search_controller.dart';
 import '../utils/weather_code_utils.dart';
 import 'book_marks_data.dart';
 
-final bookmarksProvider = StateProvider<List<Map<String, dynamic>>>(
-  (ref) => [
-    {
-      'placeName': '서울특별시 중구 을지로 100',
-      'latitude': 37.5665,
-      'longitude': 126.9780,
-    },
-    {
-      'placeName': '부산광역시 해운대구 우동 1234',
-      'latitude': 35.1796,
-      'longitude': 129.0756,
-    },
-  ],
-);
+final bookmarksProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  final auth = ref.watch(authStateProvider).value;
+  if (auth == null) return const Stream.empty();
+
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(auth.uid)
+      .collection('bookmarks')
+      .snapshots()
+      .map((snapshot) =>
+      snapshot.docs.map((doc) => {
+        ...doc.data(),
+        'id': doc.id,
+      }).toList());
+});
+
 
 class BookMarksScreen extends ConsumerStatefulWidget {
   const BookMarksScreen({super.key});
@@ -42,11 +45,37 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
     super.dispose();
   }
 
+  Future<void> addBookmark(WidgetRef ref, Map<String, dynamic> place) async {
+    final user = ref.read(authStateProvider).value;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('bookmarks')
+        .doc();
+
+    await docRef.set(place);
+  }
+
+  Future<void> deleteBookmark(WidgetRef ref, String bookmarkId) async {
+    final user = ref.read(authStateProvider).value;
+    if (user == null) return;
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('bookmarks')
+        .doc(bookmarkId)
+        .delete();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final isSearching = ref.watch(isSearchingProvider);
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
-    final bookmarks = ref.watch(bookmarksProvider);
+    final bookmarksAsyncValue = ref.watch(bookmarksProvider);
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
@@ -57,17 +86,17 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
         forceMaterialTransparency: true,
         centerTitle: true,
         title:
-            isSearching
-                ? TextField(
-                  controller: _searchController.searchController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: '장소 검색',
-                    border: InputBorder.none,
-                  ),
-                  onChanged: _searchController.onSearchChanged,
-                )
-                : const Text('즐겨찾기'),
+        isSearching
+            ? TextField(
+          controller: _searchController.searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '장소 검색',
+            border: InputBorder.none,
+          ),
+          onChanged: _searchController.onSearchChanged,
+        )
+            : const Text('즐겨찾기'),
         actions: [
           IconButton(
             icon: Icon(isSearching ? Icons.close : Icons.search),
@@ -98,81 +127,83 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
               itemBuilder: (context, index) {
                 final suggestion = searchSuggestions[index];
                 return ListTile(
-                  title: Text(suggestion['place_name'] ?? ''),
-                  subtitle: Text(suggestion['address_name'] ?? ''),
-                  onTap: () {
-                    final place = {
-                      'placeName': suggestion['address_name'] ?? '',
-                      'latitude': double.parse(suggestion['y']),
-                      'longitude': double.parse(suggestion['x']),
-                    };
-                    final updatedBookmarks = [...bookmarks, place];
-                    ref.read(bookmarksProvider.notifier).state =
-                        updatedBookmarks;
-                    _searchController.stopSearch();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-                    );
-                  },
+                    title: Text(suggestion['place_name'] ?? ''),
+                    subtitle: Text(suggestion['address_name'] ?? ''),
+                    onTap: () async {
+                      final place = {
+                        'placeName': suggestion['address_name'] ?? '',
+                        'latitude': double.parse(suggestion['y']),
+                        'longitude': double.parse(suggestion['x']),
+                      };
+
+                      await addBookmark(ref, place);
+
+                      _searchController.stopSearch();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                      );
+                    }
                 );
               },
             );
-          } else if (bookmarks.isEmpty) {
-            return const Center(child: Text('즐겨찾는 장소가 없습니다.'));
           } else {
-            return ListView.builder(
-              itemCount: bookmarks.length,
-              itemBuilder: (context, index) {
-                final bookmark = bookmarks[index];
-                final gradientColors =
+            return bookmarksAsyncValue.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('에러 발생: $error')),
+              data: (bookmarks) {
+                if (bookmarks.isEmpty) {
+                  return const Center(child: Text('즐겨찾는 장소가 없습니다.'));
+                }
+                return ListView.builder(
+                  itemCount: bookmarks.length,
+                  itemBuilder: (context, index) {
+                    final bookmark = bookmarks[index];
+                    final gradientColors =
                     Theme.of(context).brightness == Brightness.dark
                         ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                        : [Colors.white, Color(0xFFB3E5FC)];
+                        : [Colors.white, const Color(0xFFB3E5FC)];
 
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                    ],
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      bookmark['placeName'],
-                      style: TextStyle(
-                        color:
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: gradientColors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(),
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          bookmark['placeName'],
+                          style: TextStyle(
+                            color:
                             Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white
                                 : Colors.black,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        final updatedBookmarks = [...bookmarks]
-                          ..removeAt(index);
-                        ref.read(bookmarksProvider.notifier).state =
-                            updatedBookmarks;
-                      },
-                    ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (_) => Dialog(
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            deleteBookmark(ref, bookmark['id']);
+                          },
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (_) => Dialog(
                               insetPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 24,
@@ -183,7 +214,7 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                               child: SizedBox(
                                 width: double.infinity,
                                 height:
-                                    MediaQuery.of(context).size.height * 0.9,
+                                MediaQuery.of(context).size.height * 0.9,
                                 child: Column(
                                   children: [
                                     Padding(
@@ -225,10 +256,10 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                                           '닫기',
                                           style: TextStyle(
                                             color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.white
-                                                    : Colors.black,
+                                            Theme.of(context).brightness ==
+                                                Brightness.dark
+                                                ? Colors.white
+                                                : Colors.black,
                                           ),
                                         ),
                                       ),
@@ -237,9 +268,11 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                                 ),
                               ),
                             ),
-                      );
-                    },
-                  ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -270,19 +303,19 @@ class _AirQualityAndWeatherDetails extends ConsumerWidget {
     return asyncData.when(
       loading:
           () => const SizedBox(
-            height: 100,
-            child: Center(child: CircularProgressIndicator()),
-          ),
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      ),
       error:
           (error, _) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('정보 불러오기 실패: $error'),
-          ),
+        padding: const EdgeInsets.all(16),
+        child: Text('정보 불러오기 실패: $error'),
+      ),
       data: (data) {
         final aq =
-            data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
+        data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
         final item =
-            data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
+        data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
 
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
@@ -355,7 +388,7 @@ class _InfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha((0.2 * 255).round()),
+            color: Colors.black.withValues(),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
