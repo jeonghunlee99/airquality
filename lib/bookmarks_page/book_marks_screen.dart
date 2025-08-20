@@ -1,27 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/auth_service.dart';
 import '../utils/search_controller.dart';
 import '../utils/weather_code_utils.dart';
+import 'book_marks_controll.dart';
 import 'book_marks_data.dart';
-
-final bookmarksProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
-  final auth = ref.watch(authStateProvider).value;
-  if (auth == null) return const Stream.empty();
-
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(auth.uid)
-      .collection('bookmarks')
-      .snapshots()
-      .map((snapshot) =>
-      snapshot.docs.map((doc) => {
-        ...doc.data(),
-        'id': doc.id,
-      }).toList());
-});
-
 
 class BookMarksScreen extends ConsumerStatefulWidget {
   const BookMarksScreen({super.key});
@@ -45,32 +28,6 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
     super.dispose();
   }
 
-  Future<void> addBookmark(WidgetRef ref, Map<String, dynamic> place) async {
-    final user = ref.read(authStateProvider).value;
-    if (user == null) return;
-
-    final docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('bookmarks')
-        .doc();
-
-    await docRef.set(place);
-  }
-
-  Future<void> deleteBookmark(WidgetRef ref, String bookmarkId) async {
-    final user = ref.read(authStateProvider).value;
-    if (user == null) return;
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('bookmarks')
-        .doc(bookmarkId)
-        .delete();
-  }
-
-
   @override
   Widget build(BuildContext context) {
     final isSearching = ref.watch(isSearchingProvider);
@@ -79,24 +36,25 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.light
-          ? Colors.white
-          : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor:
+          Theme.of(context).brightness == Brightness.light
+              ? Colors.white
+              : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         forceMaterialTransparency: true,
         centerTitle: true,
         title:
-        isSearching
-            ? TextField(
-          controller: _searchController.searchController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '장소 검색',
-            border: InputBorder.none,
-          ),
-          onChanged: _searchController.onSearchChanged,
-        )
-            : const Text('즐겨찾기'),
+            isSearching
+                ? TextField(
+                  controller: _searchController.searchController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: '장소 검색',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: _searchController.onSearchChanged,
+                )
+                : const Text('즐겨찾기'),
         actions: [
           IconButton(
             icon: Icon(isSearching ? Icons.close : Icons.search),
@@ -127,22 +85,22 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
               itemBuilder: (context, index) {
                 final suggestion = searchSuggestions[index];
                 return ListTile(
-                    title: Text(suggestion['place_name'] ?? ''),
-                    subtitle: Text(suggestion['address_name'] ?? ''),
-                    onTap: () async {
-                      final place = {
-                        'placeName': suggestion['address_name'] ?? '',
-                        'latitude': double.parse(suggestion['y']),
-                        'longitude': double.parse(suggestion['x']),
-                      };
+                  title: Text(suggestion['place_name'] ?? ''),
+                  subtitle: Text(suggestion['address_name'] ?? ''),
+                  onTap: () async {
+                    final place = {
+                      'placeName': suggestion['address_name'] ?? '',
+                      'latitude': double.parse(suggestion['y']),
+                      'longitude': double.parse(suggestion['x']),
+                    };
 
-                      await addBookmark(ref, place);
+                    await addBookmark(ref, place);
 
-                      _searchController.stopSearch();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
-                      );
-                    }
+                    _searchController.stopSearch();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                    );
+                  },
                 );
               },
             );
@@ -159,9 +117,9 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                   itemBuilder: (context, index) {
                     final bookmark = bookmarks[index];
                     final gradientColors =
-                    Theme.of(context).brightness == Brightness.dark
-                        ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                        : [Colors.white, const Color(0xFFB3E5FC)];
+                        Theme.of(context).brightness == Brightness.dark
+                            ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                            : [Colors.white, const Color(0xFFB3E5FC)];
 
                     return Container(
                       margin: const EdgeInsets.symmetric(
@@ -188,9 +146,9 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                           bookmark['placeName'],
                           style: TextStyle(
                             color:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black,
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black,
                           ),
                         ),
                         trailing: IconButton(
@@ -204,70 +162,74 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                             context: context,
                             builder:
                                 (_) => Dialog(
-                              insetPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height:
-                                MediaQuery.of(context).size.height * 0.9,
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        24,
-                                        24,
-                                        24,
-                                        8,
-                                      ),
-                                      child: Text(
-                                        bookmark['placeName'],
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const Divider(height: 1),
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.all(16),
-                                        child: _AirQualityAndWeatherDetails(
-                                          latitude: bookmark['latitude'],
-                                          longitude: bookmark['longitude'],
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        0,
-                                        0,
-                                        0,
-                                        16,
-                                      ),
-                                      child: TextButton(
-                                        onPressed:
-                                            () => Navigator.of(context).pop(),
-                                        child: Text(
-                                          '닫기',
-                                          style: TextStyle(
-                                            color:
-                                            Theme.of(context).brightness ==
-                                                Brightness.dark
-                                                ? Colors.white
-                                                : Colors.black,
+                                  insetPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 24,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height:
+                                        MediaQuery.of(context).size.height *
+                                        0.9,
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            24,
+                                            24,
+                                            24,
+                                            8,
+                                          ),
+                                          child: Text(
+                                            bookmark['placeName'],
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        const Divider(height: 1),
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            padding: const EdgeInsets.all(16),
+                                            child: _AirQualityAndWeatherDetails(
+                                              latitude: bookmark['latitude'],
+                                              longitude: bookmark['longitude'],
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            0,
+                                            0,
+                                            0,
+                                            16,
+                                          ),
+                                          child: TextButton(
+                                            onPressed:
+                                                () =>
+                                                    Navigator.of(context).pop(),
+                                            child: Text(
+                                              '닫기',
+                                              style: TextStyle(
+                                                color:
+                                                    Theme.of(
+                                                              context,
+                                                            ).brightness ==
+                                                            Brightness.dark
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
                           );
                         },
                       ),
@@ -303,19 +265,19 @@ class _AirQualityAndWeatherDetails extends ConsumerWidget {
     return asyncData.when(
       loading:
           () => const SizedBox(
-        height: 100,
-        child: Center(child: CircularProgressIndicator()),
-      ),
+            height: 100,
+            child: Center(child: CircularProgressIndicator()),
+          ),
       error:
           (error, _) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text('정보 불러오기 실패: $error'),
-      ),
+            padding: const EdgeInsets.all(16),
+            child: Text('정보 불러오기 실패: $error'),
+          ),
       data: (data) {
         final aq =
-        data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
+            data.airQualityItems.isNotEmpty ? data.airQualityItems.first : null;
         final item =
-        data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
+            data.weatherItems.isNotEmpty ? data.weatherItems.first : null;
 
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
@@ -379,9 +341,10 @@ class _InfoCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-              : [Colors.white, const Color(0xFFB3E5FC)],
+          colors:
+              isDark
+                  ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                  : [Colors.white, const Color(0xFFB3E5FC)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -399,12 +362,15 @@ class _InfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            Text(subtitle,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
             const Divider(height: 24, thickness: 1.2, color: Colors.black26),
             ...children,
           ],
@@ -413,7 +379,6 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
-
 
 class _InfoTile extends StatelessWidget {
   final String label;

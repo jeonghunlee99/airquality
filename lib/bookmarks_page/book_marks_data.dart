@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../Weather_info_page/Weather_info_data.dart';
 import '../airquality_page/air_quality_data.dart';
+import '../utils/auth_service.dart';
 import '../utils/tm_converter.dart';
 
 final airQualityAndWeatherProvider = FutureProvider.family<
@@ -42,4 +44,20 @@ final airQualityAndWeatherProvider = FutureProvider.family<
     airQualityItems: airQualityItems,
     weatherItems: weatherItems,
   );
+});
+
+final bookmarksProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  final auth = ref.watch(authStateProvider).value;
+  if (auth == null) return const Stream.empty();
+
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(auth.uid)
+      .collection('bookmarks')
+      .snapshots()
+      .map((snapshot) =>
+      snapshot.docs.map((doc) => {
+        ...doc.data(),
+        'id': doc.id,
+      }).toList());
 });
