@@ -100,7 +100,82 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
 
                     _searchController.stopSearch();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('즐겨찾기에 추가되었습니다.')),
+                      SnackBar(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        behavior: SnackBarBehavior.floating,
+
+                        content: Builder(
+                          builder: (BuildContext context) {
+                            final isDarkMode =
+                                Theme.of(context).brightness == Brightness.dark;
+
+                            final gradientColors =
+                                isDarkMode
+                                    ? [
+                                      Colors.grey.shade900,
+                                      Colors.blueGrey.shade800,
+                                    ]
+                                    : [Colors.white, const Color(0xFFB3E5FC)];
+
+                            final borderColor =
+                                isDarkMode
+                                    ? Colors.blueGrey.shade700
+                                    : Colors.blue.shade200;
+                            final textColor =
+                                isDarkMode ? Colors.white : Colors.black;
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 15,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: gradientColors,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+
+                                    color:
+                                        isDarkMode
+                                            ? Colors.yellowAccent
+                                            : Colors.lightBlue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    '즐겨찾기에 추가되었습니다.',
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     );
                   },
                 );
