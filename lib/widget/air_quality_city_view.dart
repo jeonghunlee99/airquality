@@ -45,15 +45,11 @@ class AirQualityCityView extends ConsumerWidget {
                   width: MediaQuery.of(context).size.width * 0.85,
                   height: MediaQuery.of(context).size.height * 0.85,
                   decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors:
-                        Theme.of(context).brightness ==
-                            Brightness.dark
-                            ? [
-                          Colors.grey.shade900,
-                          Colors.blueGrey.shade800,
-                        ]
-                            : [Colors.white, Color(0xFFB3E5FC)],
+                    gradient: LinearGradient(
+                      colors:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                              : [Colors.white, Color(0xFFB3E5FC)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -78,9 +74,10 @@ class AirQualityCityView extends ConsumerWidget {
                             context,
                           ).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -126,32 +123,44 @@ class AirQualityCityView extends ConsumerWidget {
                                 ref.read(isLoadingProvider.notifier).state =
                                     false;
                               },
-                              icon:  Icon(
+                              icon: Icon(
                                 Icons.my_location,
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black
+                                color:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
                               label: Text(
                                 '현재 위치 재조회',
-                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black),
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                ),
                               ),
                             ),
                             TextButton.icon(
                               onPressed: () => showInfoDialog(context),
-                              icon:  Icon(
+                              icon: Icon(
                                 Icons.info_outline,
-                                color:  Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black
+                                color:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
-                              label:  Text(
+                              label: Text(
                                 '지수 설명',
-                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black)
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                ),
                               ),
                             ),
                           ],
@@ -208,8 +217,13 @@ Widget buildAirQualityCard(String label, String value, String type) {
         children: [
           Icon(level.icon, color: level.color, size: 32),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold,
-          color: Colors.black),),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
           const SizedBox(height: 4),
           Text('$value (${level.label})', style: TextStyle(color: level.color)),
         ],
@@ -219,31 +233,93 @@ Widget buildAirQualityCard(String label, String value, String type) {
 }
 
 void showInfoDialog(BuildContext context) {
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  final gradientColors =
+      isDarkMode
+          ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+          : [Colors.white, Color(0xFFB3E5FC)];
+
   showDialog(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        title: Text('대기질 지수 설명'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInfoRow('PM10', '미세먼지 입자 크기 10μm 이하, 호흡기에 침투할 수 있어요.'),
-              _buildInfoRow('PM2.5', '초미세먼지, 입자 크기 2.5μm 이하. 건강에 더 치명적입니다.'),
-              _buildInfoRow('O₃ (오존)', '지상 오존은 호흡기에 해롭고 눈을 자극할 수 있습니다.'),
-              _buildInfoRow('SO₂ (아황산가스)', '화석연료 연소 등으로 발생, 호흡기 자극.'),
-              _buildInfoRow('NO₂ (이산화질소)', '자동차 배기가스 주요 성분, 호흡기 질환 유발.'),
-              _buildInfoRow('CO (일산화탄소)', '무색무취의 독성 가스, 고농도 노출 시 치명적입니다.'),
-              _buildInfoRow('KHAI 지수', '대기질 종합 지수 (여러 오염물질 수치를 종합한 지표).'),
-            ],
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    '대기질 지수 설명',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow(
+                        'PM10',
+                        '미세먼지 입자 크기 10μm 이하, 호흡기에 침투할 수 있어요.',
+                      ),
+                      _buildInfoRow(
+                        'PM2.5',
+                        '초미세먼지, 입자 크기 2.5μm 이하. 건강에 더 치명적입니다.',
+                      ),
+                      _buildInfoRow(
+                        'O₃ (오존)',
+                        '지상 오존은 호흡기에 해롭고 눈을 자극할 수 있습니다.',
+                      ),
+                      _buildInfoRow('SO₂ (아황산가스)', '화석연료 연소 등으로 발생, 호흡기 자극.'),
+                      _buildInfoRow(
+                        'NO₂ (이산화질소)',
+                        '자동차 배기가스 주요 성분, 호흡기 질환 유발.',
+                      ),
+                      _buildInfoRow(
+                        'CO (일산화탄소)',
+                        '무색무취의 독성 가스, 고농도 노출 시 치명적입니다.',
+                      ),
+                      _buildInfoRow(
+                        'KHAI 지수',
+                        '대기질 종합 지수 (여러 오염물질 수치를 종합한 지표).',
+                      ),
+                    ],
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      '닫기',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('닫기', style: TextStyle(color: Colors.black)),
-          ),
-        ],
       );
     },
   );
