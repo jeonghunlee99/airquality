@@ -144,7 +144,7 @@ class _BookMarksScreenState extends ConsumerState<BookMarksScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.white.withAlpha((255 * 0.7).round()),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),

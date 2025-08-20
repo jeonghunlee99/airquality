@@ -43,9 +43,10 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
     final searchSuggestions = ref.watch(searchSuggestionsProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.light
-          ? Colors.white
-          : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor:
+          Theme.of(context).brightness == Brightness.light
+              ? Colors.white
+              : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         forceMaterialTransparency: true,
         centerTitle: true,
@@ -227,12 +228,13 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                             scrollDirection: Axis.horizontal,
                             itemCount: remainingForecasts.length,
                             itemBuilder: (context, index) {
-                              final item = remainingForecasts[index];
+                              final item = remainingForecasts.elementAt(index);
                               final selectedIndex = ref.watch(
                                 selectedForecastIndexProvider,
                               );
                               final isSelected = selectedIndex == index;
-
+                              final double containerHeight =
+                                  isSelected ? 240.0 : 150.0;
                               return GestureDetector(
                                 onTap: () {
                                   final notifier = ref.read(
@@ -240,13 +242,20 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                   );
                                   notifier.state = isSelected ? null : index;
                                 },
-                                child: Container(
+
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+
+                                  curve: Curves.easeInOut,
+
                                   width:
                                       isSelected
                                           ? MediaQuery.of(context).size.width -
                                               24 -
                                               16
                                           : 100,
+                                  height: containerHeight,
+
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                     vertical: 12,
@@ -271,15 +280,18 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                                         ]
                                                         : [
                                                           Colors.white,
-                                                          Color(0xFFB3E5FC),
+                                                          const Color(
+                                                            0xFFB3E5FC,
+                                                          ),
                                                         ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.2),
+                                                  color: Colors.white.withAlpha(
+                                                    (255 * 0.7).round(),
+                                                  ),
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -287,58 +299,62 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(16),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    '${item.time} 예보',
-                                                    style: const TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '${item.time} 예보',
+                                                      style: const TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          '🌡️ 기온: ${item.temp}°C',
+                                                    const SizedBox(height: 10),
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            '🌡️ 기온: ${item.temp}°C',
+                                                          ),
                                                         ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          '💧 습도: ${item.humidity}%',
+                                                        Expanded(
+                                                          child: Text(
+                                                            '💧 습도: ${item.humidity}%',
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          '💨 풍속: ${item.windSpeed} m/s',
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            '💨 풍속: ${item.windSpeed} m/s',
+                                                          ),
                                                         ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          '🧭 풍향: ${item.windDir}°',
+                                                        Expanded(
+                                                          child: Text(
+                                                            '🧭 풍향: ${item.windDir}°',
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    '☁️ 하늘상태: ${getSky(item.sky)}',
-                                                  ),
-                                                  Text(
-                                                    '🌧️ 강수형태: ${getPty(item.pty)}',
-                                                  ),
-                                                  Text('🌂 강수량: ${item.pcp}'),
-                                                  Text('📈 강수확률: ${item.pop}%'),
-                                                ],
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      '☁️ 하늘상태: ${getSky(item.sky)}',
+                                                    ),
+                                                    Text(
+                                                      '🌧️ 강수형태: ${getPty(item.pty)}',
+                                                    ),
+                                                    Text('🌂 강수량: ${item.pcp}'),
+                                                    Text(
+                                                      '📈 강수확률: ${item.pop}%',
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           )
@@ -359,13 +375,24 @@ class _WeatherInfoScreenState extends ConsumerState<WeatherInfoScreen> {
                                                         ]
                                                         : [
                                                           Colors.white,
-                                                          Color(0xFFB3E5FC),
+                                                          const Color(
+                                                            0xFFB3E5FC,
+                                                          ),
                                                         ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
                                               borderRadius:
                                                   BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.white.withAlpha(
+                                                    (255 * 0.7).round(),
+                                                  ),
+                                                  blurRadius: 3,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
                                             ),
                                             child: Column(
                                               mainAxisAlignment:
