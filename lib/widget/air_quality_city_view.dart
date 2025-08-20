@@ -80,7 +80,7 @@ class AirQualityCityView extends ConsumerWidget {
                                     : Colors.black,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
                         Expanded(
                           child: GridView.count(
                             crossAxisCount: 2,
