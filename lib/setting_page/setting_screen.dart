@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../login_page/login_page.dart';
 import '../utils/auth_service.dart';
 
@@ -16,9 +15,9 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor:
-          Theme.of(context).brightness == Brightness.light
-              ? Colors.white
-              : Theme.of(context).scaffoldBackgroundColor,
+      Theme.of(context).brightness == Brightness.light
+          ? Colors.white
+          : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("설정"),
         elevation: 0,
@@ -28,14 +27,65 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          authState.when(
+            data: (user) {
+              if (user != null) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                          : [Colors.white, const Color(0xFFB3E5FC)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: Colors.grey, width: 1.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 30,
+                      backgroundImage:
+                      user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                      child: user.photoURL == null
+                          ? const Icon(Icons.person, size: 30)
+                          : null,
+                    ),
+                    title: Text(
+                      user.displayName ?? '이름 없음',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.email ?? '이메일 없음',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text("오류 발생: $e")),
+          ),
+          const SizedBox(height: 25),
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors:
-                    Theme.of(context).brightness == Brightness.dark
-                        ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                        : [Colors.white, const Color(0xFFB3E5FC)],
+                Theme.of(context).brightness == Brightness.dark
+                    ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+                    : [Colors.white, const Color(0xFFB3E5FC)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -125,9 +175,9 @@ class SettingsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors:
-              Theme.of(context).brightness == Brightness.dark
-                  ? [Colors.grey.shade900, Colors.blueGrey.shade800]
-                  : [Colors.white, const Color(0xFFB3E5FC)],
+          Theme.of(context).brightness == Brightness.dark
+              ? [Colors.grey.shade900, Colors.blueGrey.shade800]
+              : [Colors.white, const Color(0xFFB3E5FC)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
