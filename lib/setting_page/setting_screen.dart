@@ -155,27 +155,25 @@ class SettingsScreen extends ConsumerWidget {
     required String title,
     required bool value,
     required ValueChanged<bool> onChanged,
-    Color activeColor = Colors.white,
-    Color activeTrackColor = Colors.grey,
-    Color inactiveThumbColor = Colors.white,
-    Color inactiveTrackColor = Colors.grey,
   }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 1,
-      child: SwitchListTile(
-        secondary: SizedBox(
+      child: ListTile(
+        leading: SizedBox(
           width: 40,
           height: 40,
           child: Image.asset(imagePath),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        value: value,
-        onChanged: onChanged,
-        activeColor: activeColor,
-        activeTrackColor: activeTrackColor,
-        inactiveThumbColor: inactiveThumbColor,
-        inactiveTrackColor: inactiveTrackColor,
+        trailing: Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Colors.white,
+          activeTrackColor: Colors.grey,
+          inactiveThumbColor: Colors.white,
+          inactiveTrackColor: Colors.grey,
+        ),
       ),
     );
   }
