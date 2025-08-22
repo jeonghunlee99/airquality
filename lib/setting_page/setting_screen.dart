@@ -14,9 +14,10 @@ class SettingsScreen extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.light
-          ? Colors.white
-          : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor:
+          Theme.of(context).brightness == Brightness.light
+              ? Colors.white
+              : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("설정"),
         elevation: 0,
@@ -37,44 +38,41 @@ class SettingsScreen extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(color: Colors.grey, width: 1),
+              border: Border.all(color: Colors.grey, width: 1.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
                 _buildSwitchTile(
-                  icon: Icons.notifications,
-                  iconColor: Colors.blue.shade600,
+                  imagePath: "assets/bell_icon.png",
                   title: "알림 받기",
                   value: true,
                   onChanged: (val) {},
                 ),
                 _buildSwitchTile(
-                  icon: Icons.dark_mode,
-                  iconColor: Colors.deepPurple.shade400,
+                  imagePath: ref.watch(themeModeProvider) == ThemeMode.dark
+                      ? "assets/light_mod_icon.png"
+                      : "assets/dark_mod_icon.png",
                   title: "다크 모드",
                   value: ref.watch(themeModeProvider) == ThemeMode.dark,
                   onChanged: (val) {
                     ref.read(themeModeProvider.notifier).state =
-                        val ? ThemeMode.dark : ThemeMode.light;
+                    val ? ThemeMode.dark : ThemeMode.light;
                   },
                 ),
                 const SizedBox(height: 2),
                 _buildSettingTile(
-                  icon: Icons.privacy_tip,
-                  iconColor: Colors.teal,
+                  imagePath: "assets/privacy_policy_icon.png",
                   title: "개인정보 처리방침",
                   onTap: () {},
                 ),
                 _buildSettingTile(
-                  icon: Icons.description,
-                  iconColor: Colors.orange,
+                  imagePath: "assets/tc_icon.png",
                   title: "이용약관",
                   onTap: () {},
                 ),
                 _buildSettingTile(
-                  icon: Icons.info,
-                  iconColor: Colors.blueGrey,
+                  imagePath: "assets/app_info_icon.png",
                   title: "앱 버전",
                   trailing: const Text(
                     "v1.0.0",
@@ -153,8 +151,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSwitchTile({
-    required IconData icon,
-    required Color iconColor,
+    required String imagePath,
     required String title,
     required bool value,
     required ValueChanged<bool> onChanged,
@@ -167,7 +164,11 @@ class SettingsScreen extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 1,
       child: SwitchListTile(
-        secondary: Icon(icon, color: iconColor),
+        secondary: SizedBox(
+          width: 40,
+          height: 40,
+          child: Image.asset(imagePath),
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
         value: value,
         onChanged: onChanged,
@@ -180,8 +181,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSettingTile({
-    required IconData icon,
-    required Color iconColor,
+    required String imagePath,
     required String title,
     Widget? trailing,
     VoidCallback? onTap,
@@ -190,7 +190,11 @@ class SettingsScreen extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 1,
       child: ListTile(
-        leading: Icon(icon, color: iconColor),
+        leading: SizedBox(
+          width: 40,
+          height: 40,
+          child: Image.asset(imagePath),
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
         trailing: trailing ?? const Icon(Icons.chevron_right),
         onTap: onTap,
