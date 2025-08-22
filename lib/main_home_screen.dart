@@ -27,7 +27,9 @@ class MainHomeScreen extends ConsumerWidget {
         onTap: (index) {
           ref.read(selectedIndexProvider.notifier).state = index;
         },
-        selectedItemColor: Colors.blueAccent,
+        selectedItemColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         items: const [
