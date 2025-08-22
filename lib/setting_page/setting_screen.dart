@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../login_page/login_page.dart';
 import '../utils/auth_service.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
@@ -99,17 +100,13 @@ class SettingsScreen extends ConsumerWidget {
                 );
               } else {
                 return GestureDetector(
-                  onTap: () async {
-                    final user = await AuthService().signInWithGoogle();
-                    if (user != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("환영합니다, ${user.displayName}!")),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text("로그인 취소됨")));
-                    }
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                    );
                   },
                   child: _buildButton(context, "로그인", Colors.black),
                 );
